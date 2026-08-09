@@ -7,9 +7,17 @@ void request; void app;
 // Requires the DB to be migrated and seeded first.
 // It should assert: GET /api/categories returns 200 and the four seeded
 // category names in id order.
-describe.todo("GET /api/categories", () => {
-  it.todo("returns the four seeded categories in id order", async () => {
-    // TODO(Issue 4): implement this assertion.
-    expect(true).toBe(true);
+describe("GET /api/categories", () => {
+  it("returns the four seeded categories in id order", async () => {
+    const res = await request(app).get("/api/categories");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(4);
+    expect(res.body).toEqual([
+      { id: 1, name: "Account and Access", createdAt: expect.any(String) },
+      { id: 2, name: "Hardware", createdAt: expect.any(String) },
+      { id: 3, name: "Software", createdAt: expect.any(String) },
+      { id: 4, name: "Network", createdAt: expect.any(String) },
+    ]);
   });
 });

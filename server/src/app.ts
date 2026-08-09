@@ -1,13 +1,16 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
-import { getPrisma } from "./prisma.js";
-// getPrisma() is your lazy database handle. Call it INSIDE a route when you
-// need the DB (Issue 4). It is intentionally unused until then.
-void getPrisma;
+import { PrismaClient } from "@prisma/client";
+
+const app = express();
+const prisma = new PrismaClient();
+
+app.use(cors());
+app.use(express.json());
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
-export const app = express();
+
 
 app.use(cors());          // already wired: lets the Vite dev server call this API
 app.use(express.json());
@@ -17,9 +20,11 @@ app.use(express.json());
 // Make the test in tests/lab-01/health.test.ts pass.
 // It must return HTTP 200 with JSON: { status: "ok", service: "TokTickIT API" }
 // ---------------------------------------------------------------------------
-app.get("/api/health", (_req: Request, res: Response) => {
-  // TODO(Issue 2): replace this stub with the required 200 response.
-  res.status(501).json({ error: "Not implemented yet" });
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "TokTickIT API",
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -29,6 +34,17 @@ app.get("/api/health", (_req: Request, res: Response) => {
 //   -> return each { id, name } in a predictable (id) order
 //   -> on failure, respond 500 with a safe message (no internal details)
 // TODO(Issue 4): implement the route here.
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { id: "asc" },
+    });
+    res.status(200).json(categories);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
 // ---------------------------------------------------------------------------
 
+export { app };
 export default app;

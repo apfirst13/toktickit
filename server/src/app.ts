@@ -15,10 +15,17 @@ app.get("/", (req, res) => {
 
 // API health check endpoint - Issue #2
 app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "TokTickIT API",
-  });
+  try {
+    res.status(200).json({
+      status: "ok",
+      service: "TokTickIT API",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Service unavailable",
+    });
+  }
 });
 
 export { app };

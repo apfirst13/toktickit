@@ -1,14 +1,19 @@
 import express from "express";
 import cors from "cors";
+import { PrismaClient } from "@prisma/client";
 
-// 1. ประกาศตัวแปร app
 const app = express();
+const prisma = new PrismaClient();
 
-// 2. ตั้งค่า Middleware
 app.use(cors());
 app.use(express.json());
 
-// 3. สร้าง Endpoint /api/health
+// Basic health check route
+app.get("/", (req, res) => {
+  res.send("TokTickIT API is running!");
+});
+
+// API health check endpoint - Issue #2
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -16,6 +21,5 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// 4. Export ทั้งแบบ Named Export ({ app }) และ Default Export (app)
 export { app };
 export default app;

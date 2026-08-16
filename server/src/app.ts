@@ -54,5 +54,22 @@ app.get("/", (req, res) => {
   res.send("TokTickIT API is running!");
 });
 
+
+// API health check endpoint - Issue #2
+app.get("/api/health", (req, res) => {
+  try {
+    res.status(200).json({
+      status: "ok",
+      service: "TokTickIT API",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Service unavailable",
+    });
+  }
+});
+
+
 export { app };
 export default app;

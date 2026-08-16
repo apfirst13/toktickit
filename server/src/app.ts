@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 
+
 const app = express();
 const prisma = new PrismaClient();
 
@@ -12,8 +13,11 @@ app.use(express.json());
 // Supertest can import `app` without opening a port. Do not merge these files.
 
 
-app.use(cors());          // already wired: lets the Vite dev server call this API
+const app = express();
+const prisma = new PrismaClient();
+app.use(cors());
 app.use(express.json());
+
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check
@@ -45,6 +49,10 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 // ---------------------------------------------------------------------------
+// Basic health check route
+app.get("/", (req, res) => {
+  res.send("TokTickIT API is running!");
+});
 
 export { app };
 export default app;

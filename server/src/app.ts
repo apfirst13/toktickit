@@ -13,6 +13,7 @@ app.get("/", (req, res) => {
   res.send("TokTickIT API is running!");
 });
 
+
 // API health check endpoint - Issue #2
 app.get("/api/health", (req, res) => {
   try {
@@ -27,6 +28,7 @@ app.get("/api/health", (req, res) => {
     });
   }
 });
+
 
 export { app };
 export default app;

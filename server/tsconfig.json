@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "outDir": "dist",
     "skipLibCheck": true,
-    "types": ["node"]
+    "outDir": "./dist"
   },
-  "include": ["src", "prisma", "tests"]
+  "include": ["src/**/*"]
 }

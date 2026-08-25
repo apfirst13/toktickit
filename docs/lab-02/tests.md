@@ -15,6 +15,9 @@ We will employ a Spec-Driven and Test-Driven Development (TDD) approach. The tes
 | **API-02** | AC-02 (API) | Get tickets isolation | 200 OK; returns only tickets owned by the requested ID | `server/tests/lab-02/my-tickets.api.test.ts` | Pending |
 | **API-03** | AC-03 (API) | Reject 6th attachment | 400 Bad Request; error message regarding attachment limit | `server/tests/lab-02/attachments.api.test.ts` | Pending |
 | **API-04** | AC-04 (API) | Soft remove attachment | 200 OK; attachment marked as removed, file untouched initially | `server/tests/lab-02/attachments.api.test.ts` | Pending |
+API-05 | API | Negative | Reject invalid file type (.exe) | 400 Bad Request | server/tests/lab-02/attachments.api.test.ts | Pending |
+| API-06 | API | Negative | Request with missing requesterId | 400 Bad Request | server/tests/lab-02/tickets.api.test.ts | Pending |
+| API-07 | API | Negative | Reject attachment > 5MB | 400 Bad Request | server/tests/lab-02/attachments.api.test.ts | Pending |
 | **UI-01** | AC-05 (UI) | Submit without Summary | Field error message appears; API is not called | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
 | **UI-02** | UI | Display empty state | My Tickets shows a friendly empty state if 0 tickets exist | `client/tests/lab-02/MyTickets.test.tsx` | Pending |
 | **UI-03** | UI | Loading state on submit | Submit button shows busy state while API is pending | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |

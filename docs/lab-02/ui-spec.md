@@ -16,6 +16,7 @@
 - **Inputs:** Editable fields use a white background with a clear neutral border. Read-only fields use a distinct soft gray-green background.
 - **Buttons:** Include visible text. Submit buttons show a busy state and are disabled while processing.
 - **Badges:** Consistent badge styles for Requested Priority, IT Priority, and Current Status.
+Validation Behavior: ข้อความ Error จะแสดงขึ้นเมื่อผู้ใช้ย้าย Cursor ออกจากช่องพิมพ์ (onBlur) และจะมีการตรวจสอบฟอร์มทั้งหมดอีกครั้งเมื่อกดปุ่ม Submit (onSubmit) โดยข้อความ Error จะไม่หายไปเองจนกว่าผู้ใช้จะกรอกข้อมูลถูกต้อง
 
 ## 3. Responsive Layout Rules
 - **Desktop (≥ 992px):** Multi-column layout as specified; content centered with a sensible maximum width.

@@ -1,4 +1,3 @@
-import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DevelopmentRequesterSelection } from "../../components/DevelopmentRequesterSelection";
@@ -15,13 +14,13 @@ describe("DevelopmentRequesterSelection Component", () => {
   });
 
   it("should display loading spinner initially", () => {
-    global.fetch = vi.fn(() => new Promise(() => {})); // Never resolves
+    globalThis.fetch = vi.fn(() => new Promise(() => {})) as any; // Never resolves
     render(<DevelopmentRequesterSelection />);
     expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
   });
 
   it("should display error message on fetch failure", async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network Error"));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network Error")) as any;
     render(<DevelopmentRequesterSelection />);
     await waitFor(() => {
       expect(screen.getByTestId("error-message")).toBeInTheDocument();
@@ -30,10 +29,10 @@ describe("DevelopmentRequesterSelection Component", () => {
   });
 
   it("should render dropdown on success and save to localStorage on continue", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockRequesters),
-    });
+    }) as any;
 
     render(<DevelopmentRequesterSelection />);
 

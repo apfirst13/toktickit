@@ -69,7 +69,7 @@ async function main() {
       create: user,
     });
   }
-  console.log(`Seeding: ${requesterUsers.length} Requester Users done.`);
+  console.log(`Seeding: ${requesters.length} Requester Users done.`);
 
   console.log('Lab 2 Seeding completed successfully!');
   console.log('Seeding finished.');

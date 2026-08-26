@@ -26,6 +26,8 @@ model RequesterUser {
   name      String
   email     String   @unique
   isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   tickets   Ticket[]
 }
 

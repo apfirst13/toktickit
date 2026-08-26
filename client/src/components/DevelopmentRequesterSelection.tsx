@@ -15,7 +15,7 @@ export function DevelopmentRequesterSelection() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/requesters")
+    fetch("/api/requesters")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch requesters");
         return res.json();

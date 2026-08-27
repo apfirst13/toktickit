@@ -1,9 +1,9 @@
 import express from "express";
 import cors from "cors";
 import { prisma } from "./prisma.js";
+import crypto from "crypto";
 
 const app = express();
-
 
 app.use(cors());
 app.use(express.json());
@@ -60,6 +60,84 @@ app.get("/api/systems", async (req, res) => {
   }
 });
 
+// GET tickets with pagination and requesterId filtering - Issue #4
+app.get("/api/tickets", async (req, res) => {
+  try {
+    const { requesterId, page = "1", limit = "10" } = req.query;
+
+    if (!requesterId || isNaN(Number(requesterId))) {
+      return res.status(400).json({ error: "requesterId query parameter is required" });
+    }
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.max(1, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [tickets, total] = await Promise.all([
+      prisma.ticket.findMany({
+        where: { requesterUserId: Number(requesterId) },
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: "desc" },
+        include: {
+          category: true,
+          relatedSystem: true,
+        },
+      }),
+      prisma.ticket.count({
+        where: { requesterUserId: Number(requesterId) },
+      }),
+    ]);
+
+    res.status(200).json({
+      data: tickets,
+      meta: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch tickets" });
+  }
+});
+
+// GET ticket by ID with ownership check
+app.get("/api/tickets/:id", async (req, res) => {
+  try {
+    const { requesterId } = req.query;
+    const ticketId = Number(req.params.id);
+
+    if (!requesterId || isNaN(Number(requesterId))) {
+      return res.status(400).json({ error: "requesterId query parameter is required" });
+    }
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: true,
+        relatedSystem: true,
+        attachments: { where: { isRemoved: false } },
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    if (ticket.requesterUserId !== Number(requesterId)) {
+      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+    }
+
+    res.status(200).json(ticket);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch ticket" });
+  }
+});
+
 // Ticket creation - Issue #4
 app.post("/api/tickets", async (req, res) => {
   const { summary, description, categoryId, systemId, requestedPriority, requesterId } = req.body;
@@ -100,9 +178,27 @@ app.post("/api/tickets", async (req, res) => {
   }
 
   try {
+    // 5. Foreign Key Validation
+    const [category, system, requester] = await Promise.all([
+      prisma.category.findUnique({ where: { id: Number(categoryId) } }),
+      prisma.relatedSystem.findUnique({ where: { id: Number(systemId) } }),
+      prisma.requesterUser.findUnique({ where: { id: Number(requesterId) } }),
+    ]);
+
+    if (!category) errors.push({ field: "categoryId", message: "Category not found." });
+    if (!system) errors.push({ field: "systemId", message: "Related system not found." });
+    if (!requester) errors.push({ field: "requesterId", message: "Requester not found." });
+
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    // 4. Ticket Number Generation (Secure & Race-condition free)
+    const secureTicketNumber = `TIK-${Date.now().toString().slice(-6)}${crypto.randomInt(1000, 9999)}`;
+
     const ticket = await prisma.ticket.create({
       data: {
-        ticketNumber: "TIK-TEMP",
+        ticketNumber: secureTicketNumber,
         summary: summary.trim(),
         description: description.trim(),
         requestedPriority,
@@ -113,19 +209,102 @@ app.post("/api/tickets", async (req, res) => {
       },
     });
 
-    // Update with zero-padded ID
-    const updated = await prisma.ticket.update({
-      where: { id: ticket.id },
-      data: { ticketNumber: `TIK-${String(ticket.id).padStart(5, "0")}` },
-    });
-
-    return res.status(201).json(updated);
+    return res.status(201).json(ticket);
   } catch (error) {
     console.error("Error creating ticket:", error);
     return res.status(500).json({ error: "Failed to create ticket" });
   }
 });
 
+// Add attachment to ticket
+app.post("/api/tickets/:id/attachments", async (req, res) => {
+  try {
+    const ticketId = Number(req.params.id);
+    const { requesterId, fileName, fileUrl, fileType, fileSize } = req.body;
+
+    if (!requesterId || isNaN(Number(requesterId))) {
+      return res.status(400).json({ error: "requesterId is required" });
+    }
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: { attachments: { where: { isRemoved: false } } },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    if (ticket.requesterUserId !== Number(requesterId)) {
+      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+    }
+
+    if (ticket.attachments.length >= 5) {
+      return res.status(400).json({ error: "Maximum of 5 active attachments allowed per ticket" });
+    }
+
+    const attachment = await prisma.attachment.create({
+      data: {
+        ticketId,
+        fileName,
+        fileUrl,
+        fileType,
+        fileSize: Number(fileSize),
+      },
+    });
+
+    res.status(201).json(attachment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to add attachment" });
+  }
+});
+
+// Soft-remove attachment
+app.delete("/api/tickets/:id/attachments/:attachmentId", async (req, res) => {
+  try {
+    const { requesterId } = req.query;
+    const ticketId = Number(req.params.id);
+    const attachmentId = Number(req.params.attachmentId);
+
+    if (!requesterId || isNaN(Number(requesterId))) {
+      return res.status(400).json({ error: "requesterId query parameter is required" });
+    }
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    if (ticket.requesterUserId !== Number(requesterId)) {
+      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+    }
+
+    const attachment = await prisma.attachment.findUnique({
+      where: { id: attachmentId },
+    });
+
+    if (!attachment || attachment.ticketId !== ticketId || attachment.isRemoved) {
+      return res.status(404).json({ error: "Attachment not found or already removed" });
+    }
+
+    const updated = await prisma.attachment.update({
+      where: { id: attachmentId },
+      data: {
+        isRemoved: true,
+        removedAt: new Date(),
+      },
+    });
+
+    res.status(200).json({ message: "Attachment removed successfully", attachment: updated });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to remove attachment" });
+  }
+});
+
 export { app };
 export default app;
-

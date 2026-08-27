@@ -40,10 +40,12 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
   const [successTicket, setSuccessTicket] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   useEffect(() => {
     Promise.all([
-      fetch("/api/categories").then((r) => r.json()),
-      fetch("/api/systems").then((r) => r.json()),
+      fetch("/api/categories").then((r) => { if (!r.ok) throw new Error(); return r.json(); }),
+      fetch("/api/systems").then((r) => { if (!r.ok) throw new Error(); return r.json(); }),
     ])
       .then(([cats, syss]) => {
         setCategories(cats);
@@ -52,7 +54,10 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
         if (syss.length > 0) setSystemId(String(syss[0].id));
         setLoadingDropdowns(false);
       })
-      .catch(() => setLoadingDropdowns(false));
+      .catch(() => {
+        setFetchError("Failed to load reference data. Please try refreshing the page.");
+        setLoadingDropdowns(false);
+      });
   }, []);
 
   function validate(): FormErrors {
@@ -93,6 +98,9 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
         setSummary("");
         setDescription("");
         setRequestedPriority("");
+        // Reset dropdowns to defaults
+        if (categories.length > 0) setCategoryId(String(categories[0].id));
+        if (systems.length > 0) setSystemId(String(systems[0].id));
         if (onSuccess) onSuccess(data.ticketNumber);
       } else {
         const data = await res.json();
@@ -128,6 +136,11 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
             </p>
           )}
 
+          {fetchError && (
+            <div className="alert alert-warning" data-testid="fetch-error">
+              {fetchError}
+            </div>
+          )}
           {successTicket && (
             <div className="alert alert-success" data-testid="success-message">
               ✅ Ticket created! Your ticket number is <strong>{successTicket}</strong>.
@@ -184,7 +197,7 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
               </div>
 
               {/* Category */}
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-4">
                 <label htmlFor="categoryId" className="form-label fw-semibold">
                   Category <span className="text-danger">*</span>
                 </label>
@@ -194,7 +207,7 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                   data-testid="select-category"
-                  disabled={loadingDropdowns}
+                  disabled={loadingDropdowns || !!fetchError}
                 >
                   {loadingDropdowns ? (
                     <option>Loading...</option>
@@ -214,7 +227,7 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
               </div>
 
               {/* Related System */}
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-4">
                 <label htmlFor="systemId" className="form-label fw-semibold">
                   Related System <span className="text-danger">*</span>
                 </label>
@@ -224,7 +237,7 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
                   value={systemId}
                   onChange={(e) => setSystemId(e.target.value)}
                   data-testid="select-system"
-                  disabled={loadingDropdowns}
+                  disabled={loadingDropdowns || !!fetchError}
                 >
                   {loadingDropdowns ? (
                     <option>Loading...</option>
@@ -244,7 +257,7 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
               </div>
 
               {/* Priority */}
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-4">
                 <label htmlFor="requestedPriority" className="form-label fw-semibold">
                   Priority <span className="text-danger">*</span>
                 </label>

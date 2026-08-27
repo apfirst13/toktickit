@@ -60,9 +60,21 @@ describe("POST /api/tickets", () => {
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty("ticketNumber");
-    expect(res.body.ticketNumber).toMatch(/^TIK-\d{5}$/);
+    expect(res.body.ticketNumber).toMatch(/^TIK-\d{9,10}$/);
     expect(res.body.currentStatus).toBe("New");
     expect(res.body.summary).toBe("My printer is not working at all");
+  });
+
+  it("should return tickets only for the requesting user (isolation)", async () => {
+    // Another user requesting tickets
+    const res = await request(app).get(`/api/tickets?requesterId=${requesterId + 999}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.length).toBe(0);
+
+    // Actual user requesting tickets
+    const res2 = await request(app).get(`/api/tickets?requesterId=${requesterId}`);
+    expect(res2.status).toBe(200);
+    expect(res2.body.data.length).toBeGreaterThan(0);
   });
 
   it("should return 400 when required fields are missing", async () => {

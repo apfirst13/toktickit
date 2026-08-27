@@ -8,11 +8,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/**
+ * Basic health check route for the root endpoint.
+ * Returns a simple message indicating the API is running.
+ */
 // Basic health check route
 app.get("/", (req, res) => {
   res.send("TokTickIT API is running!");
 });
 
+/**
+ * API health check endpoint that returns the service status.
+ * Used by clients to verify the API is accessible and operational.
+ *
+ * @route GET /api/health
+ * @returns {object} 200 - Status object with "ok" status and service name
+ */
 // API health check endpoint - Issue #2
 app.get("/api/health", (req, res) => {
   res.status(200).json({
@@ -21,6 +32,13 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+/**
+ * Retrieves all ticket categories ordered by ID.
+ *
+ * @route GET /api/categories
+ * @returns {object} 200 - Array of category objects
+ * @returns {object} 500 - Error message if fetch fails
+ */
 // Category list - Issue #4
 app.get("/api/categories", async (req, res) => {
   try {
@@ -33,6 +51,13 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 
+/**
+ * Retrieves all active requester users ordered by ID.
+ *
+ * @route GET /api/requesters
+ * @returns {object} 200 - Array of active requester user objects
+ * @returns {object} 500 - Error message if fetch fails
+ */
 // Requester list - Issue #3
 app.get("/api/requesters", async (req, res) => {
   try {
@@ -47,6 +72,13 @@ app.get("/api/requesters", async (req, res) => {
   }
 });
 
+/**
+ * Retrieves all related systems ordered by ID.
+ *
+ * @route GET /api/systems
+ * @returns {object} 200 - Array of related system objects
+ * @returns {object} 500 - Error message if fetch fails
+ */
 // Related Systems list - Issue #4
 app.get("/api/systems", async (req, res) => {
   try {
@@ -138,6 +170,22 @@ app.get("/api/tickets/:id", async (req, res) => {
   }
 });
 
+/**
+ * Creates a new support ticket with validation.
+ * Validates all required fields and creates a ticket with an auto-generated ticket number.
+ *
+ * @route POST /api/tickets
+ * @param {object} req.body - Ticket creation data
+ * @param {string} req.body.summary - Brief summary of the issue (max 200 chars)
+ * @param {string} req.body.description - Detailed description (min 20 chars)
+ * @param {number} req.body.categoryId - Category ID
+ * @param {number} req.body.systemId - Related system ID
+ * @param {string} req.body.requestedPriority - Priority level (Low, Medium, or High)
+ * @param {number} req.body.requesterId - Requester user ID
+ * @returns {object} 201 - Created ticket object with generated ticket number
+ * @returns {object} 400 - Validation errors array
+ * @returns {object} 500 - Error message if creation fails
+ */
 // Ticket creation - Issue #4
 app.post("/api/tickets", async (req, res) => {
   const { summary, description, categoryId, systemId, requestedPriority, requesterId } = req.body;

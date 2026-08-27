@@ -24,6 +24,14 @@ interface CreateTicketProps {
   onSuccess?: (ticketNumber: string) => void;
 }
 
+/**
+ * CreateTicket component provides a form for creating IT support tickets.
+ * Allows users to submit tickets with summary, description, category, system, and priority.
+ *
+ * @param requesterId - The ID of the user creating the ticket
+ * @param requesterName - Optional name of the requester to display
+ * @param onSuccess - Optional callback invoked when ticket is successfully created, receives the ticket number
+ */
 export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTicketProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [systems, setSystems] = useState<RelatedSystem[]>([]);
@@ -60,6 +68,11 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
       });
   }, []);
 
+  /**
+   * Validates the form fields and returns an object containing any validation errors.
+   *
+   * @returns An object mapping field names to error messages
+   */
   function validate(): FormErrors {
     const e: FormErrors = {};
     if (!summary.trim()) e.summary = "Summary is required.";
@@ -72,6 +85,13 @@ export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTi
     return e;
   }
 
+  /**
+   * Handles form submission by validating inputs and sending ticket data to the API.
+   * On success, clears the form and invokes the onSuccess callback.
+   * On failure, displays validation errors or submission errors.
+   *
+   * @param e - The form submission event
+   */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError(null);

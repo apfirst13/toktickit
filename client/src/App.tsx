@@ -7,6 +7,10 @@ interface Requester {
   name: string;
 }
 
+/**
+ * Main application component that manages requester selection and ticket creation workflow.
+ * Displays requester selection screen if no requester is selected, otherwise shows the ticket creation form.
+ */
 function App() {
   const [requester, setRequester] = useState<Requester | null>(() => {
     const id = localStorage.getItem("dev_requester_id");
@@ -14,6 +18,12 @@ function App() {
     return id ? { id: Number(id), name: name || "Unknown" } : null;
   });
 
+  /**
+   * Handles requester selection by updating state when a requester is chosen.
+   *
+   * @param id - The selected requester's ID
+   * @param name - The selected requester's name
+   */
   function handleRequesterSelected(id: number, name: string) {
     setRequester({ id, name });
   }

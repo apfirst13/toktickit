@@ -6,6 +6,10 @@ interface HealthCheckResponse {
   message?: string;
 }
 
+/**
+ * HealthStatus component displays the connection status to the backend API.
+ * Periodically checks the /api/health endpoint and shows online/offline status.
+ */
 export const HealthStatus = () => {
   const [status, setStatus] = useState<"ok" | "offline" | "loading">("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");

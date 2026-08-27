@@ -7,7 +7,13 @@ interface Requester {
   isActive: boolean;
 }
 
-export function DevelopmentRequesterSelection() {
+/**
+ * DevelopmentRequesterSelection component provides a mock login interface for development.
+ * Allows developers to select a requester from the database to simulate an active user session.
+ *
+ * @param onSelect - Optional callback invoked when a requester is selected, receives id and name
+ */
+export function DevelopmentRequesterSelection({ onSelect }: { onSelect?: (id: number, name: string) => void }) {
   const [requesters, setRequesters] = useState<Requester[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,11 +37,17 @@ export function DevelopmentRequesterSelection() {
       });
   }, []);
 
+  /**
+   * Handles the continue button click by saving the selected requester to localStorage
+   * and invoking the onSelect callback.
+   */
   const handleContinue = () => {
     if (selectedId) {
+      const selected = requesters.find((r) => r.id.toString() === selectedId);
       localStorage.setItem("dev_requester_id", selectedId);
+      if (selected) localStorage.setItem("dev_requester_name", selected.name);
       setSaved(true);
-      // In a real app, you might redirect here.
+      if (onSelect && selected) onSelect(selected.id, selected.name);
     }
   };
 

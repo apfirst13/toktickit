@@ -5,7 +5,8 @@ import { prisma } from "../../src/prisma.js";
 
 describe("GET /api/requesters", () => {
   beforeAll(async () => {
-    // Clean slate before seeding
+    // Clean slate - tickets first (FK constraint), then requesters
+    await prisma.ticket.deleteMany({});
     await prisma.requesterUser.deleteMany({});
 
     // Seed deterministic test data: 2 active, 1 inactive
@@ -19,6 +20,7 @@ describe("GET /api/requesters", () => {
   });
 
   afterAll(async () => {
+    await prisma.ticket.deleteMany({});
     await prisma.requesterUser.deleteMany({});
     await prisma.$disconnect();
   });

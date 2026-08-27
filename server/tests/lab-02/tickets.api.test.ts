@@ -1,0 +1,121 @@
+import request from "supertest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { app } from "../../src/app.js";
+import { prisma } from "../../src/prisma.js";
+
+// Use unique identifiers to isolate test data
+const TEST_EMAIL = "tickets_test_user@example.com";
+const TEST_CATEGORY = "__TicketsTestCategory__";
+const TEST_SYSTEM = "__TicketsTestSystem__";
+
+let requesterId: number;
+let categoryId: number;
+let systemId: number;
+
+describe("POST /api/tickets", () => {
+  beforeAll(async () => {
+    // Clean up any leftover test data first
+    await prisma.ticket.deleteMany({
+      where: { requesterUser: { email: TEST_EMAIL } },
+    });
+    await prisma.requesterUser.deleteMany({ where: { email: TEST_EMAIL } });
+    await prisma.category.deleteMany({ where: { name: TEST_CATEGORY } });
+    await prisma.relatedSystem.deleteMany({ where: { name: TEST_SYSTEM } });
+
+    // Create isolated test data
+    const requester = await prisma.requesterUser.create({
+      data: { name: "Tickets Test User", email: TEST_EMAIL, isActive: true },
+    });
+    requesterId = requester.id;
+
+    const category = await prisma.category.create({
+      data: { name: TEST_CATEGORY },
+    });
+    categoryId = category.id;
+
+    const system = await prisma.relatedSystem.create({
+      data: { name: TEST_SYSTEM },
+    });
+    systemId = system.id;
+  });
+
+  afterAll(async () => {
+    // Clean up in FK order
+    await prisma.ticket.deleteMany({ where: { requesterUserId: requesterId } });
+    await prisma.requesterUser.deleteMany({ where: { email: TEST_EMAIL } });
+    await prisma.category.deleteMany({ where: { name: TEST_CATEGORY } });
+    await prisma.relatedSystem.deleteMany({ where: { name: TEST_SYSTEM } });
+    await prisma.$disconnect();
+  });
+
+  it("should create a ticket and return 201 with a ticket number", async () => {
+    const res = await request(app).post("/api/tickets").send({
+      summary: "My printer is not working at all",
+      description: "The printer in room 301 has not been working since Monday morning. I need it urgently.",
+      categoryId,
+      systemId,
+      requestedPriority: "High",
+      requesterId,
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty("ticketNumber");
+    expect(res.body.ticketNumber).toMatch(/^TIK-\d{5}$/);
+    expect(res.body.currentStatus).toBe("New");
+    expect(res.body.summary).toBe("My printer is not working at all");
+  });
+
+  it("should return 400 when required fields are missing", async () => {
+    const res = await request(app).post("/api/tickets").send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty("errors");
+    expect(Array.isArray(res.body.errors)).toBe(true);
+    expect(res.body.errors.length).toBeGreaterThan(0);
+  });
+
+  it("should return 400 when summary exceeds 200 characters", async () => {
+    const res = await request(app).post("/api/tickets").send({
+      summary: "A".repeat(201),
+      description: "A valid description that is long enough to pass the minimum check here.",
+      categoryId,
+      systemId,
+      requestedPriority: "Low",
+      requesterId,
+    });
+
+    expect(res.status).toBe(400);
+    const fields = res.body.errors.map((e: { field: string }) => e.field);
+    expect(fields).toContain("summary");
+  });
+
+  it("should return 400 when description is shorter than 20 characters", async () => {
+    const res = await request(app).post("/api/tickets").send({
+      summary: "Valid summary here",
+      description: "Too short",
+      categoryId,
+      systemId,
+      requestedPriority: "Medium",
+      requesterId,
+    });
+
+    expect(res.status).toBe(400);
+    const fields = res.body.errors.map((e: { field: string }) => e.field);
+    expect(fields).toContain("description");
+  });
+
+  it("should return 400 when requestedPriority is invalid", async () => {
+    const res = await request(app).post("/api/tickets").send({
+      summary: "Valid summary here",
+      description: "This is a valid description that is definitely long enough.",
+      categoryId,
+      systemId,
+      requestedPriority: "Critical",
+      requesterId,
+    });
+
+    expect(res.status).toBe(400);
+    const fields = res.body.errors.map((e: { field: string }) => e.field);
+    expect(fields).toContain("requestedPriority");
+  });
+});

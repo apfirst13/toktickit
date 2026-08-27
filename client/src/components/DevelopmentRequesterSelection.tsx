@@ -7,7 +7,7 @@ interface Requester {
   isActive: boolean;
 }
 
-export function DevelopmentRequesterSelection() {
+export function DevelopmentRequesterSelection({ onSelect }: { onSelect?: (id: number, name: string) => void }) {
   const [requesters, setRequesters] = useState<Requester[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +33,11 @@ export function DevelopmentRequesterSelection() {
 
   const handleContinue = () => {
     if (selectedId) {
+      const selected = requesters.find((r) => r.id.toString() === selectedId);
       localStorage.setItem("dev_requester_id", selectedId);
+      if (selected) localStorage.setItem("dev_requester_name", selected.name);
       setSaved(true);
-      // In a real app, you might redirect here.
+      if (onSelect && selected) onSelect(selected.id, selected.name);
     }
   };
 

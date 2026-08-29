@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface Attachment {
   id: number;
   fileName: string;
   fileUrl: string;
+  fileType: string;
   fileSize: number;
+  isRemoved: boolean;
 }
 
 interface TicketDetailData {
@@ -26,26 +29,52 @@ interface TicketDetailProps {
   onBack: () => void;
 }
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+const ZEN = "#006B3C";
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const ALLOWED_EXTENSIONS = "JPG, PNG, WEBP, PDF";
+
+// ── Priority badge colour ─────────────────────────────────────────────────────
+function priorityBadge(priority: string) {
+  const map: Record<string, string> = { High: "danger", Medium: "warning", Low: "success" };
+  return map[priority] ?? "secondary";
+}
+
+function statusBadge(status: string) {
+  const map: Record<string, string> = {
+    New: "info",
+    "In Progress": "primary",
+    Resolved: "success",
+    Closed: "secondary",
+  };
+  return map[status] ?? "secondary";
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProps) {
   const [ticket, setTicket] = useState<TicketDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Attachment form state
-  const [fileName, setFileName] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
+  // Upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [attachError, setAttachError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTicket();
+    loadTicket();
   }, [ticketId, requesterId]);
 
-  const fetchTicket = () => {
+  const loadTicket = () => {
+    setLoading(true);
+    setError(null);
     fetch(`/api/tickets/${ticketId}?requesterId=${requesterId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load ticket details");
-        return res.json();
+      .then((r) => {
+        if (!r.ok) throw new Error(r.status === 403 ? "Access denied." : "Failed to load ticket.");
+        return r.json();
       })
       .then((data) => {
         setTicket(data);
@@ -57,187 +86,286 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
       });
   };
 
-  const handleAddAttachment = async (e: React.FormEvent) => {
+  // ── Client-side file validation ─────────────────────────────────────────────
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    setUploadSuccess(null);
+    const file = e.target.files?.[0];
+    if (!file) { setSelectedFile(null); return; }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setUploadError(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS}.`);
+      setSelectedFile(null);
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError("File exceeds the 5 MB limit.");
+      setSelectedFile(null);
+      e.target.value = "";
+      return;
+    }
+    setSelectedFile(file);
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fileName || !fileUrl) return;
+    if (!selectedFile) { setUploadError("Please select a file."); return; }
+    if (!ticket || ticket.attachments.length >= 5) {
+      setUploadError("Cannot upload: maximum of 5 attachments already reached.");
+      return;
+    }
 
     setUploading(true);
-    setAttachError(null);
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("requesterId", String(requesterId));
 
     try {
       const res = await fetch(`/api/tickets/${ticketId}/attachments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requesterId,
-          fileName,
-          fileUrl,
-          fileType: "application/octet-stream", // mock
-          fileSize: 1024, // mock size
-        }),
+        body: formData,
       });
-
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to add attachment");
+        const data = await res.json();
+        throw new Error(data.error ?? "Upload failed.");
       }
-
-      setFileName("");
-      setFileUrl("");
-      fetchTicket(); // Reload ticket to get updated attachments
-    } catch (err: any) {
-      setAttachError(err.message);
+      setUploadSuccess(`"${selectedFile.name}" uploaded successfully.`);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      loadTicket();
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploading(false);
     }
   };
 
-  const handleRemoveAttachment = async (attachmentId: number) => {
-    if (!confirm("Are you sure you want to remove this attachment?")) return;
+  const handleRemove = async (attachmentId: number) => {
+    if (!confirm("Remove this attachment? This action cannot be undone.")) return;
     try {
-      const res = await fetch(`/api/tickets/${ticketId}/attachments/${attachmentId}?requesterId=${requesterId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to remove attachment");
-      fetchTicket();
-    } catch (err: any) {
-      alert(err.message);
+      const res = await fetch(
+        `/api/tickets/${ticketId}/attachments/${attachmentId}?requesterId=${requesterId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Remove failed.");
+      }
+      loadTicket();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Remove failed.");
     }
   };
 
-  const zen = "#006B3C";
-
+  // ── Loading / Error states ────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="container py-4 text-center" data-testid="detail-loading">
-        <div className="spinner-border text-success" role="status" />
+      <div className="container py-5 text-center" data-testid="detail-loading">
+        <div className="spinner-border" style={{ color: ZEN }} role="status">
+          <span className="visually-hidden">Loading…</span>
+        </div>
       </div>
     );
   }
 
   if (error || !ticket) {
     return (
-      <div className="container py-4">
-        <div className="alert alert-danger" data-testid="detail-error">{error || "Ticket not found"}</div>
-        <button className="btn btn-outline-secondary" onClick={onBack}>Back to List</button>
+      <div className="container py-4" data-testid="detail-error-container">
+        <div className="alert alert-danger" data-testid="detail-error">
+          {error ?? "Ticket not found."}
+        </div>
+        <button className="btn btn-outline-secondary" onClick={onBack}>
+          ← Back to Tickets
+        </button>
       </div>
     );
   }
 
+  const activeAttachments = ticket.attachments.filter((a) => !a.isRemoved);
+  const canUpload = activeAttachments.length < 5;
+
   return (
-    <div className="container py-4" style={{ maxWidth: 800 }}>
-      <button className="btn btn-sm btn-outline-secondary mb-3" onClick={onBack} data-testid="back-btn">
-        &larr; Back to Tickets
+    <div className="container py-4" style={{ maxWidth: 860 }}>
+      {/* Back */}
+      <button
+        className="btn btn-sm btn-outline-secondary mb-3"
+        onClick={onBack}
+        data-testid="back-btn"
+      >
+        ← Back to Tickets
       </button>
 
-      <div className="card shadow-sm mb-4" style={{ borderTop: `4px solid ${zen}` }} data-testid="ticket-detail-view">
+      {/* ── Ticket Info Card ── */}
+      <div
+        className="card shadow-sm mb-4"
+        style={{ borderTop: `4px solid ${ZEN}` }}
+        data-testid="ticket-detail-view"
+      >
         <div className="card-body">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h4 className="card-title mb-0" style={{ color: zen }} data-testid="detail-number">
-              {ticket.ticketNumber}
-            </h4>
-            <span className="badge bg-info fs-6">{ticket.currentStatus}</span>
+          {/* Header row */}
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+            <div>
+              <span className="text-muted small d-block mb-1">Ticket Number</span>
+              <h4 className="mb-0 fw-bold" style={{ color: ZEN }} data-testid="detail-number">
+                {ticket.ticketNumber}
+              </h4>
+            </div>
+            <div className="d-flex gap-2">
+              <span className={`badge bg-${statusBadge(ticket.currentStatus)} fs-6`}>
+                {ticket.currentStatus}
+              </span>
+              <span className={`badge bg-${priorityBadge(ticket.requestedPriority)} fs-6`}>
+                {ticket.requestedPriority}
+              </span>
+            </div>
           </div>
 
-          <div className="row mb-3">
+          {/* Summary + Created */}
+          <div className="row mb-3 g-3">
             <div className="col-12 col-md-8">
-              <p className="text-muted mb-1 small">Summary</p>
-              <h5 data-testid="detail-summary">{ticket.summary}</h5>
+              <p className="text-muted small mb-1">Summary</p>
+              <h5 className="mb-0" data-testid="detail-summary">
+                {ticket.summary}
+              </h5>
             </div>
-            <div className="col-12 col-md-4 text-md-end mt-3 mt-md-0">
-              <p className="text-muted mb-1 small">Created At</p>
+            <div className="col-12 col-md-4">
+              <p className="text-muted small mb-1">Created</p>
               <strong>{new Date(ticket.createdAt).toLocaleString()}</strong>
             </div>
           </div>
 
+          {/* Description */}
           <div className="mb-4">
-            <p className="text-muted mb-1 small">Description</p>
-            <div className="p-3 bg-light rounded" style={{ whiteSpace: "pre-wrap" }} data-testid="detail-description">
+            <p className="text-muted small mb-1">Description</p>
+            <div
+              className="p-3 bg-light rounded border"
+              style={{ whiteSpace: "pre-wrap", minHeight: 80 }}
+              data-testid="detail-description"
+            >
               {ticket.description || "No description provided."}
             </div>
           </div>
 
+          {/* Meta row */}
           <div className="row g-3">
             <div className="col-12 col-md-4">
-              <p className="text-muted mb-1 small">Category</p>
+              <p className="text-muted small mb-1">Category</p>
               <strong data-testid="detail-category">{ticket.category.name}</strong>
             </div>
             <div className="col-12 col-md-4">
-              <p className="text-muted mb-1 small">System</p>
+              <p className="text-muted small mb-1">Related System</p>
               <strong data-testid="detail-system">{ticket.relatedSystem.name}</strong>
             </div>
             <div className="col-12 col-md-4">
-              <p className="text-muted mb-1 small">Priority</p>
+              <p className="text-muted small mb-1">Priority</p>
               <strong data-testid="detail-priority">{ticket.requestedPriority}</strong>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── Attachments Card ── */}
       <div className="card shadow-sm" data-testid="attachments-section">
-        <div className="card-header bg-white fw-bold">Attachments ({ticket.attachments.length}/5)</div>
+        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+          <strong>Attachments</strong>
+          <span className="badge bg-secondary">{activeAttachments.length} / 5</span>
+        </div>
         <div className="card-body">
-          {ticket.attachments.length > 0 ? (
-            <ul className="list-group mb-3">
-              {ticket.attachments.map((att) => (
-                <li key={att.id} className="list-group-item d-flex justify-content-between align-items-center">
-                  <a href={att.fileUrl} target="_blank" rel="noreferrer" className="text-decoration-none">
-                    📄 {att.fileName}
-                  </a>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => handleRemoveAttachment(att.id)}
-                    data-testid={`remove-attach-${att.id}`}
-                  >
-                    Remove
-                  </button>
+          {/* Attachment list */}
+          {activeAttachments.length === 0 ? (
+            <p className="text-muted small mb-3" data-testid="no-attachments">
+              No attachments yet.
+            </p>
+          ) : (
+            <ul className="list-group mb-3" data-testid="attachment-list">
+              {activeAttachments.map((att) => (
+                <li
+                  key={att.id}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                  data-testid={`attachment-item-${att.id}`}
+                >
+                  <div className="d-flex align-items-center gap-2 overflow-hidden">
+                    <span>📄</span>
+                    <span className="text-truncate" style={{ maxWidth: 300 }}>
+                      {att.fileName}
+                    </span>
+                    <small className="text-muted">
+                      ({(att.fileSize / 1024).toFixed(1)} KB)
+                    </small>
+                  </div>
+                  <div className="d-flex gap-2 flex-shrink-0">
+                    <a
+                      href={`/api/tickets/${ticketId}/attachments/${att.id}/download?requesterId=${requesterId}`}
+                      className="btn btn-sm btn-outline-primary"
+                      data-testid={`download-attach-${att.id}`}
+                    >
+                      Download
+                    </a>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleRemove(att.id)}
+                      data-testid={`remove-attach-${att.id}`}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className="text-muted small">No attachments yet.</p>
           )}
 
-          {ticket.attachments.length < 5 && (
-            <form onSubmit={handleAddAttachment} className="mt-3 p-3 bg-light rounded" data-testid="add-attachment-form">
-              <h6 className="mb-3">Add New Attachment</h6>
-              {attachError && <div className="alert alert-danger py-2">{attachError}</div>}
-              <div className="row g-2 align-items-end">
-                <div className="col-12 col-md-4">
-                  <label className="form-label small mb-1">File Name</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    required
-                    value={fileName}
-                    onChange={(e) => setFileName(e.target.value)}
-                    placeholder="e.g., error.png"
-                    data-testid="attach-filename"
-                  />
+          {/* Upload form */}
+          {canUpload ? (
+            <form
+              onSubmit={handleUpload}
+              className="mt-2 p-3 rounded border bg-light"
+              data-testid="upload-form"
+            >
+              <h6 className="mb-3 fw-semibold" style={{ color: ZEN }}>
+                Add Attachment
+              </h6>
+
+              {uploadSuccess && (
+                <div className="alert alert-success py-2 small" data-testid="upload-success">
+                  {uploadSuccess}
                 </div>
-                <div className="col-12 col-md-6">
-                  <label className="form-label small mb-1">Mock File URL</label>
-                  <input
-                    type="url"
-                    className="form-control form-control-sm"
-                    required
-                    value={fileUrl}
-                    onChange={(e) => setFileUrl(e.target.value)}
-                    placeholder="https://example.com/error.png"
-                    data-testid="attach-url"
-                  />
+              )}
+              {uploadError && (
+                <div className="alert alert-danger py-2 small" data-testid="upload-error">
+                  {uploadError}
                 </div>
-                <div className="col-12 col-md-2">
-                  <button type="submit" className="btn btn-sm btn-primary w-100" disabled={uploading} data-testid="attach-submit">
-                    {uploading ? "Adding..." : "Add"}
-                  </button>
-                </div>
+              )}
+
+              <div className="mb-2">
+                <label className="form-label small mb-1">
+                  File <span className="text-muted">(Max 5 MB — {ALLOWED_EXTENSIONS})</span>
+                </label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="form-control form-control-sm"
+                  accept=".jpg,.jpeg,.png,.webp,.pdf"
+                  onChange={handleFileChange}
+                  data-testid="file-input"
+                />
               </div>
+              <button
+                type="submit"
+                className="btn btn-sm"
+                style={{ backgroundColor: ZEN, color: "white", borderColor: ZEN }}
+                disabled={uploading || !selectedFile}
+                data-testid="upload-btn"
+              >
+                {uploading ? "Uploading…" : "Upload"}
+              </button>
             </form>
-          )}
-          {ticket.attachments.length >= 5 && (
-            <div className="alert alert-warning py-2 mb-0 mt-3 small">
-              Maximum attachment limit (5) reached.
+          ) : (
+            <div className="alert alert-warning py-2 small mb-0 mt-2" data-testid="max-attach-warning">
+              Maximum attachment limit (5) reached. Remove one to add more.
             </div>
           )}
         </div>

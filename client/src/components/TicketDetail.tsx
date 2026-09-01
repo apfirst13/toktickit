@@ -64,6 +64,10 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
+  // Soft remove modal state
+  const [removalTargetId, setRemovalTargetId] = useState<number | null>(null);
+  const [removalReason, setRemovalReason] = useState("");
+
   useEffect(() => {
     loadTicket();
   }, [ticketId, requesterId]);
@@ -144,17 +148,34 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
     }
   };
 
-  const handleRemove = async (attachmentId: number) => {
-    if (!confirm("Remove this attachment? This action cannot be undone.")) return;
+  const handleRemove = (attachmentId: number) => {
+    setRemovalTargetId(attachmentId);
+  };
+
+  const confirmRemove = async () => {
+    if (!removalTargetId) return;
+    if (!removalReason.trim()) {
+      alert("Removal reason is required.");
+      return;
+    }
+
     try {
       const res = await fetch(
-        `/api/tickets/${ticketId}/attachments/${attachmentId}?requesterId=${requesterId}`,
-        { method: "DELETE" }
+        `/api/tickets/${ticketId}/attachments/${removalTargetId}?requesterId=${requesterId}`,
+        { 
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ removalReason })
+        }
       );
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "Remove failed.");
       }
+      setRemovalTargetId(null);
+      setRemovalReason("");
       loadTicket();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Remove failed.");
@@ -190,6 +211,45 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
 
   return (
     <div className="container py-4" style={{ maxWidth: 860 }}>
+      {/* Removal Modal */}
+      {removalTargetId && (
+        <div className="modal d-block bg-dark bg-opacity-50" tabIndex={-1}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Remove Attachment</h5>
+                <button type="button" className="btn-close" onClick={() => { setRemovalTargetId(null); setRemovalReason(""); }}></button>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to remove this attachment?</p>
+                <div className="mb-3">
+                  <label className="form-label">Removal Reason (Required)</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={removalReason}
+                    onChange={(e) => setRemovalReason(e.target.value)}
+                    data-testid="removal-reason-input"
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => { setRemovalTargetId(null); setRemovalReason(""); }}>Cancel</button>
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={confirmRemove} 
+                  disabled={!removalReason.trim()}
+                  data-testid="confirm-remove-btn"
+                >
+                  Confirm Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back */}
       <button
         className="btn btn-sm btn-outline-secondary mb-3"
@@ -276,43 +336,53 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
         </div>
         <div className="card-body">
           {/* Attachment list */}
-          {activeAttachments.length === 0 ? (
+          {ticket.attachments.length === 0 ? (
             <p className="text-muted small mb-3" data-testid="no-attachments">
               No attachments yet.
             </p>
           ) : (
             <ul className="list-group mb-3" data-testid="attachment-list">
-              {activeAttachments.map((att) => (
+              {ticket.attachments.map((att) => (
                 <li
                   key={att.id}
                   className="list-group-item d-flex justify-content-between align-items-center"
                   data-testid={`attachment-item-${att.id}`}
                 >
                   <div className="d-flex align-items-center gap-2 overflow-hidden">
-                    <span>📄</span>
-                    <span className="text-truncate" style={{ maxWidth: 300 }}>
+                    <span>📎</span>
+                    <span 
+                      className={`text-truncate ${att.isRemoved ? 'text-decoration-line-through text-muted' : ''}`} 
+                      style={{ maxWidth: 300 }}
+                    >
                       {att.fileName}
                     </span>
                     <small className="text-muted">
                       ({(att.fileSize / 1024).toFixed(1)} KB)
                     </small>
+                    {att.isRemoved && (
+                      <span className="badge bg-danger ms-2" data-testid={`removed-badge-${att.id}`}>
+                        Removed: {att.removalReason}
+                      </span>
+                    )}
                   </div>
-                  <div className="d-flex gap-2 flex-shrink-0">
-                    <a
-                      href={`/api/tickets/${ticketId}/attachments/${att.id}/download?requesterId=${requesterId}`}
-                      className="btn btn-sm btn-outline-primary"
-                      data-testid={`download-attach-${att.id}`}
-                    >
-                      Download
-                    </a>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleRemove(att.id)}
-                      data-testid={`remove-attach-${att.id}`}
-                    >
-                      Remove
-                    </button>
-                  </div>
+                  {!att.isRemoved && (
+                    <div className="d-flex gap-2 flex-shrink-0">
+                      <a
+                        href={`/api/tickets/${ticketId}/attachments/${att.id}/download?requesterId=${requesterId}`}
+                        className="btn btn-sm btn-outline-primary"
+                        data-testid={`download-attach-${att.id}`}
+                      >
+                        Download
+                      </a>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleRemove(att.id)}
+                        data-testid={`remove-attach-${att.id}`}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

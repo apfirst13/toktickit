@@ -8,6 +8,11 @@ interface Ticket {
   createdAt: string;
 }
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface MyTicketsProps {
   requesterId: number;
   onViewTicket: (id: number) => void;
@@ -15,11 +20,32 @@ interface MyTicketsProps {
 
 export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filters
+  const [search, setSearch] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+
   useEffect(() => {
-    fetch(`/api/tickets?requesterId=${requesterId}`)
+    fetch("/api/categories")
+      .then((r) => r.ok ? r.json() : [])
+      .then((cats) => setCategories(cats))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const query = new URLSearchParams({
+      requesterId: String(requesterId),
+      ...(search ? { search } : {}),
+      ...(categoryId ? { categoryId } : {}),
+      ...(sortBy ? { sortBy } : {})
+    });
+    
+    fetch(`/api/tickets?${query.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load tickets");
         return res.json();
@@ -32,7 +58,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
         setError(err.message);
         setLoading(false);
       });
-  }, [requesterId]);
+  }, [requesterId, search, categoryId, sortBy]);
 
   const zen = "#006B3C";
 
@@ -43,6 +69,43 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
           <h4 className="card-title mb-4" style={{ color: zen }}>
             My Tickets
           </h4>
+          
+          <div className="row g-2 mb-4">
+            <div className="col-md-5">
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="Search summary..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                data-testid="search-input"
+              />
+            </div>
+            <div className="col-md-4">
+              <select 
+                className="form-select" 
+                value={categoryId} 
+                onChange={(e) => setCategoryId(e.target.value)}
+                data-testid="category-filter"
+              >
+                <option value="">All Categories</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-3">
+              <select 
+                className="form-select" 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                data-testid="sort-filter"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
+          </div>
 
           {loading && (
             <div className="text-center my-4" data-testid="loading-spinner">
@@ -60,13 +123,13 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
 
           {!loading && !error && tickets.length === 0 && (
             <p className="text-muted" data-testid="empty-tickets">
-              You haven't created any tickets yet.
+              No tickets found.
             </p>
           )}
 
           {!loading && !error && tickets.length > 0 && (
             <div className="table-responsive">
-              <table className="table table-hover align-middle">
+              <table className="table table-hover align-middle" data-testid="tickets-table">
                 <thead>
                   <tr>
                     <th>Ticket Number</th>

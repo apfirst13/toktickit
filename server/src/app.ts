@@ -2,21 +2,13 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 
-
 const app = express();
 const prisma = new PrismaClient();
-
 app.use(cors());
 app.use(express.json());
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
-
-
-const app = express();
-const prisma = new PrismaClient();
-app.use(cors());
-app.use(express.json());
 
 
 // ---------------------------------------------------------------------------

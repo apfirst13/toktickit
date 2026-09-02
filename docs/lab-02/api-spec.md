@@ -1,35 +1,113 @@
 # Lab 2 API Specification
 
-## 1. Reference Data Endpoints
-- `GET /api/requesters`: Retrieve active development requesters. Returns `200 OK` (Array).
-- `GET /api/categories`: Retrieve active ticket categories. Returns `200 OK` (Array).
-- `GET /api/systems`: Retrieve active related systems. Returns `200 OK` (Array).
+## 1. Reference Data
 
-## 2. Ticket Endpoints
-### `POST /api/tickets`
-- **Purpose:** Create a new ticket.
-- **Body:** `{ summary, description, categoryId, systemId, requestedPriority, requesterId }`
-- **Response:** `201 Created` (with generated ticketNumber) | `400 Bad Request` (Validation error).
+### `GET /api/requesters`
+- **Purpose:** Retrieve active development requesters for the selection screen.
+- **Response 200 OK:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Jennifer Anderson",
+    "email": "jennifer@example.com",
+    "department": "Engineering"
+  }
+]
 
-### `GET /api/tickets`
-- **Purpose:** Retrieve paginated tickets owned by the current requester.
-- **Query Params:** `requesterId` (required), `search`, `categoryId`, `status`, `page`.
-- **Response:** `200 OK` (Array of tickets + pagination metadata) | `400 Bad Request` (Missing requesterId).
+[
+  { "id": 1, "name": "Hardware" },
+  { "id": 2, "name": "Software" }
+]
 
-### `GET /api/tickets/:id`
-- **Purpose:** Retrieve specific ticket details.
-- **Query Params:** `requesterId` (required for ownership check).
-- **Response:** `200 OK` | `404 Not Found` | `403 Forbidden` (If owned by someone else).
+[
+  { "id": 1, "name": "Email Server" },
+  { "id": 2, "name": "ERP System" }
+]
 
-## 3. Attachment Endpoints
-### `POST /api/tickets/:id/attachments`
-- **Purpose:** Upload an attachment (Max 5MB; JPG, PNG, WEBP, PDF). Max 5 per ticket.
-- **Response:** `201 Created` | `400 Bad Request` (Limit exceeded, invalid type/size).
+{
+  "summary": "string (Required, Max 200 chars)",
+  "description": "string (Required)",
+  "categoryId": "number (Required, must exist in DB)",
+  "systemId": "number (Required, must exist in DB)",
+  "requestedPriority": "string (Required, Enum: 'Low', 'Medium', 'High')",
+  "requesterId": "number (Required, must exist in DB)"
+}
 
-### `GET /api/tickets/:id/attachments/:attachmentId/download`
-- **Purpose:** Download an active attachment.
-- **Response:** `200 OK` (File stream) | `404 Not Found` | `403 Forbidden` (If removed or unauthorized).
+{
+  "id": 123,
+  "ticketNumber": "TIK-001",
+  "summary": "Cannot access Email",
+  "currentStatus": "New",
+  "createdAt": "2026-08-25T10:00:00Z"
+}
 
-### `DELETE /api/tickets/:id/attachments/:attachmentId`
-- **Purpose:** Soft-remove an attachment.
-- **Response:** `200 OK` (Metadata marked as removed) | `404 Not Found`.
+{
+  "errors": [
+    { "field": "summary", "message": "Summary is required and must not exceed 200 characters." },
+    { "field": "requestedPriority", "message": "Invalid priority level." }
+  ]
+}
+
+
+{
+  "data": [
+    {
+      "id": 123,
+      "ticketNumber": "TIK-001",
+      "summary": "Cannot access Email",
+      "category": { "id": 1, "name": "Hardware" },
+      "requestedPriority": "High",
+      "currentStatus": "New",
+      "updatedAt": "2026-08-25T10:00:00Z"
+    }
+  ],
+  "meta": {
+    "totalRecords": 45,
+    "currentPage": 1,
+    "totalPages": 5,
+    "limit": 10
+  }
+}
+
+{
+  "errors": [
+    { "field": "requesterId", "message": "Requester ID is required to fetch tickets." }
+  ]
+}
+
+{
+  "id": 1,
+  "ticketNumber": "TIK-001",
+  "summary": "Issue with VPN",
+  "description": "Cannot connect to the corporate VPN from home.",
+  "category": { "id": 4, "name": "Network" },
+  "system": { "id": 3, "name": "VPN" },
+  "currentStatus": "New",
+  "requestedPriority": "High",
+  "attachments": []
+}
+
+{
+  "id": 10,
+  "fileName": "screenshot-error.png",
+  "originalName": "error.png",
+  "size": 1024500,
+  "url": "/uploads/screenshot-error.png"
+}
+
+{
+  "errors": [
+    { "field": "file", "message": "File exceeds the 5MB limit or invalid file type." }
+  ]
+}
+
+{
+  "message": "Attachment removed successfully.",
+  "attachmentId": 10,
+  "isRemoved": true
+}{
+  "message": "Attachment removed successfully.",
+  "attachmentId": 10,
+  "isRemoved": true
+}

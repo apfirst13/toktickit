@@ -13,21 +13,11 @@ describe("GET /api/categories", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(4);
-
-    // Verify the names in order (IDs may vary after re-seeding)
-    const names = res.body.map((c: { name: string }) => c.name);
-    expect(names).toEqual([
-      "Account and Access",
-      "Hardware",
-      "Software",
-      "Network",
+    expect(res.body).toEqual([
+      { id: 1, name: "Account and Access", createdAt: expect.any(String) },
+      { id: 2, name: "Hardware", createdAt: expect.any(String) },
+      { id: 3, name: "Software", createdAt: expect.any(String) },
+      { id: 4, name: "Network", createdAt: expect.any(String) },
     ]);
-
-    // Each item should have an id and createdAt
-    res.body.forEach((c: { id: number; name: string; createdAt: string }) => {
-      expect(c).toHaveProperty("id");
-      expect(c).toHaveProperty("name");
-      expect(c).toHaveProperty("createdAt");
-    });
   });
 });

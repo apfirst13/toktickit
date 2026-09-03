@@ -5,6 +5,7 @@ import crypto from "crypto";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { generateTicketNumber } from "./utils/ticket.util.js";
 
 // ── Multer: store uploads in /uploads, 5 MB limit ──────────────────────────
 const UPLOAD_DIR = path.resolve("uploads");
@@ -16,8 +17,7 @@ const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {
-    const unique = `${Date.now()}-${crypto.randomInt(1000, 9999)}`;
-    cb(null, `${unique}${path.extname(file.originalname)}`);
+    cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`);
   },
 });
 
@@ -287,7 +287,7 @@ app.post("/api/tickets", async (req, res) => {
     }
 
     // 4. Ticket Number Generation (Secure & Race-condition free)
-    const secureTicketNumber = `TIK-${Date.now().toString().slice(-6)}${crypto.randomInt(1000, 9999)}`;
+    const secureTicketNumber = generateTicketNumber();
 
     const ticket = await prisma.ticket.create({
       data: {

@@ -54,14 +54,15 @@ model Ticket {
 }
 
 model Attachment {
-  id          Int       @id @default(autoincrement())
-  fileName    String
-  fileUrl     String
-  fileType    String
-  fileSize    Int
-  isRemoved   Boolean   @default(false)
-  removedAt   DateTime?
-  createdAt   DateTime  @default(now())
+  id            Int       @id @default(autoincrement())
+  fileName      String
+  fileUrl       String
+  fileType      String
+  fileSize      Int
+  isRemoved     Boolean   @default(false)
+  removedAt     DateTime?
+  removalReason String?
+  createdAt     DateTime  @default(now())
 
   ticketId    Int
   ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)

@@ -125,7 +125,7 @@ app.get("/api/systems", async (req, res) => {
 // GET tickets with pagination and requesterId filtering - Issue #4
 app.get("/api/tickets", async (req, res) => {
   try {
-    const { requesterId, page = "1", limit = "10" } = req.query;
+    const { requesterId, page = "1", limit = "10", search, categoryId, sortBy } = req.query;
 
     if (!requesterId || isNaN(Number(requesterId))) {
       return res.status(400).json({ error: "requesterId query parameter is required" });
@@ -134,24 +134,39 @@ app.get("/api/tickets", async (req, res) => {
     const pageNum = Math.max(1, parseInt(page as string, 10));
     const limitNum = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNum - 1) * limitNum;
+    
+    // Build where clause
+    const where: any = { requesterUserId: Number(requesterId) };
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      where.summary = { contains: search, mode: 'insensitive' };
+    }
+    if (categoryId && !isNaN(Number(categoryId))) {
+      where.categoryId = Number(categoryId);
+    }
+    
+    // Build orderBy clause
+    let orderBy: any = { createdAt: "desc" };
+    if (sortBy === 'oldest') {
+      orderBy = { createdAt: "asc" };
+    }
 
     const [tickets, total] = await Promise.all([
       prisma.ticket.findMany({
-        where: { requesterUserId: Number(requesterId) },
+        where,
         skip,
         take: limitNum,
-        orderBy: { createdAt: "desc" },
+        orderBy,
         include: {
           category: true,
           relatedSystem: true,
         },
       }),
       prisma.ticket.count({
-        where: { requesterUserId: Number(requesterId) },
+        where,
       }),
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       data: tickets,
       meta: {
         total,
@@ -162,7 +177,7 @@ app.get("/api/tickets", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch tickets" });
+    return res.status(500).json({ error: "Failed to fetch tickets" });
   }
 });
 
@@ -181,7 +196,7 @@ app.get("/api/tickets/:id", async (req, res) => {
       include: {
         category: true,
         relatedSystem: true,
-        attachments: { where: { isRemoved: false } },
+        attachments: true,
       },
     });
 
@@ -401,10 +416,11 @@ app.get("/api/tickets/:id/attachments/:attachmentId/download", async (req, res) 
 });
 
 // ── DELETE /api/tickets/:id/attachments/:attachmentId  ──────────────────────
-// Soft-remove: sets isRemoved=true and removedAt timestamp.
+// Soft-remove: sets isRemoved=true, removedAt timestamp, and removalReason.
 app.delete("/api/tickets/:id/attachments/:attachmentId", async (req, res) => {
   try {
     const { requesterId } = req.query;
+    const { removalReason } = req.body;
     const ticketId = Number(req.params.id);
     const attachmentId = Number(req.params.attachmentId);
 
@@ -426,7 +442,7 @@ app.delete("/api/tickets/:id/attachments/:attachmentId", async (req, res) => {
 
     const updated = await prisma.attachment.update({
       where: { id: attachmentId },
-      data: { isRemoved: true, removedAt: new Date() },
+      data: { isRemoved: true, removedAt: new Date(), removalReason },
     });
 
     return res.status(200).json({ message: "Attachment removed successfully", attachment: updated });

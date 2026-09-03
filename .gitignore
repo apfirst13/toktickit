@@ -13,5 +13,16 @@ server/prisma/*.db
 # logs & OS
 *.log
 .DS_Store
+# uploaded test files
 server/uploads/*
+!server/uploads/.gitkeep
+
+# test artifacts
 test-results/
+
+# scratch/debug files
+*.txt
+tree.html
+tests-traceability.html
+screenshot-fixes.js
+terminal.html

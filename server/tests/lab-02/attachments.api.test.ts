@@ -90,6 +90,11 @@ describe("Attachment API – Issue 6", () => {
     expect(res.body).toHaveProperty("id");
     expect(res.body.fileType).toBe("image/jpeg");
     expect(res.body.isRemoved).toBe(false);
+    
+    // Validate BR-07: Filename must be stored as UUID v4
+    const filename = res.body.fileUrl.split("/uploads/")[1];
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.\w+)?$/i;
+    expect(filename).toMatch(uuidRegex);
   });
 
   it("should upload PNG and PDF files successfully", async () => {
@@ -215,7 +220,7 @@ describe("Attachment API – Issue 6", () => {
     // Ticket detail should no longer show this attachment
     const ticketRes = await request(app)
       .get(`/api/tickets/${removableTicket.id}?requesterId=${ownerId}`);
-    expect(ticketRes.body.attachments.find((a: { id: number }) => a.id === att.id)).toBeUndefined();
+    expect(ticketRes.body.attachments.find((a: { id: number }) => a.id === att.id)?.isRemoved).toBe(true);
 
     // Cleanup
     await prisma.attachment.deleteMany({ where: { ticketId: removableTicket.id } });

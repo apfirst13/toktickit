@@ -24,10 +24,12 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters
+  // Filters & Pagination
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -40,6 +42,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
     setLoading(true);
     const query = new URLSearchParams({
       requesterId: String(requesterId),
+      page: String(page),
       ...(search ? { search } : {}),
       ...(categoryId ? { categoryId } : {}),
       ...(sortBy ? { sortBy } : {})
@@ -52,13 +55,21 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
       })
       .then((data) => {
         setTickets(data.data);
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages || 1);
+        }
         setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
         setLoading(false);
       });
-  }, [requesterId, search, categoryId, sortBy]);
+  }, [requesterId, search, categoryId, sortBy, page]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryId, sortBy]);
 
   const zen = "#006B3C";
 
@@ -128,42 +139,69 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
           )}
 
           {!loading && !error && tickets.length > 0 && (
-            <div className="table-responsive">
-              <table className="table table-hover align-middle" data-testid="tickets-table">
-                <thead>
-                  <tr>
-                    <th>Ticket Number</th>
-                    <th>Summary</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody data-testid="tickets-table-body">
-                  {tickets.map((t) => (
-                    <tr key={t.id} data-testid={`ticket-row-${t.id}`}>
-                      <td className="fw-bold">{t.ticketNumber}</td>
-                      <td>{t.summary}</td>
-                      <td>
-                        <span className={`badge bg-${t.currentStatus === 'New' ? 'info' : 'secondary'}`}>
-                          {t.currentStatus}
-                        </span>
-                      </td>
-                      <td>{new Date(t.createdAt).toLocaleDateString()}</td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => onViewTicket(t.id)}
-                          data-testid={`view-ticket-${t.id}`}
-                        >
-                          View
-                        </button>
-                      </td>
+            <>
+              <div className="table-responsive">
+                <table className="table table-hover align-middle" data-testid="tickets-table">
+                  <thead>
+                    <tr>
+                      <th>Ticket Number</th>
+                      <th>Summary</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody data-testid="tickets-table-body">
+                    {tickets.map((t) => (
+                      <tr key={t.id} data-testid={`ticket-row-${t.id}`}>
+                        <td className="fw-bold">{t.ticketNumber}</td>
+                        <td>{t.summary}</td>
+                        <td>
+                          <span className={`badge bg-${t.currentStatus === 'New' ? 'info' : 'secondary'}`}>
+                            {t.currentStatus}
+                          </span>
+                        </td>
+                        <td>{new Date(t.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => onViewTicket(t.id)}
+                            data-testid={`view-ticket-${t.id}`}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-between align-items-center mt-3" data-testid="pagination-controls">
+                  <button 
+                    className="btn btn-sm btn-outline-secondary" 
+                    disabled={page === 1}
+                    onClick={() => setPage(p => p - 1)}
+                    data-testid="prev-page"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-muted small">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button 
+                    className="btn btn-sm btn-outline-secondary" 
+                    disabled={page === totalPages}
+                    onClick={() => setPage(p => p + 1)}
+                    data-testid="next-page"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

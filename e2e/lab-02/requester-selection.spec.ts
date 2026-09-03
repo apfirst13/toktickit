@@ -17,8 +17,8 @@ test.describe("Requester Selection (Lab 2)", () => {
     const continueBtn = page.locator("data-testid=continue-btn");
     await continueBtn.click();
     
-    // Check saved message
-    await expect(page.locator("data-testid=saved-message")).toBeVisible();
+    // Check that we transitioned to the Create Ticket screen
+    await expect(page.locator("text=Create IT Support Ticket")).toBeVisible();
     
     // Create artifacts directory if not exists
     if (!fs.existsSync("artifacts/lab-02/screenshots")) {

@@ -64,7 +64,7 @@
     - [ DONE ] No clipped labels, overlapping messages, or hidden buttons across all sizes.
     - [ DONE ] Validation messages appear immediately below the field in dark red text.
 
-    ## 5. Test Commands
+    ## 6. Test Commands
     Because the backend test suite cleans up its test data during teardown, it also clears the local database. To run all suites sequentially successfully, you must re-seed the database before running E2E tests:
     ```bash
     cd server && npx vitest run
@@ -73,7 +73,7 @@
     cd .. && npx playwright test
     ```
 
-    ## 6. Final Results
+    ## 7. Final Results
     Implementation is complete and all test suites have been executed successfully on the `main` branch. 
     - **Backend API Tests**: 22 tests passing across 6 test files (100% coverage for API requirements and Unit utilities).
     - **Frontend UI Tests**: 19 tests passing across 4 test files (100% coverage for rendering and validation).
@@ -81,6 +81,6 @@
     
     Overall status: **PASS**
 
-    ## 7. Known Limitations or Deferred Tests
+    ## 8. Known Limitations or Deferred Tests
     - Authentication and role-based access tests are deferred to Lab 3.
     - The backend test suite currently wipes seed data on teardown; E2E tests require a fresh `npx prisma db seed` before running. This is a known test-isolation gap to address in a future lab.

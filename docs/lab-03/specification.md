@@ -94,6 +94,12 @@ The system must transition from simulated identity to production-grade access co
 - **AC-04:** Given a Requester account, any request targeting `/api/tickets/:id/notes` returns 403 Forbidden without leaking note existence.
 - **AC-05:** Given an IT Staff user, when accessing the queue, tickets can be filtered by category, status, priority, and searched by ticket number or summary.
 - **AC-06:** Given an Administrator, when attempting to deactivate their own account or the last active administrator, the operation is blocked with 400 Bad Request.
+- **AC-7:** Given the Lab 2 database with existing Requester and Ticket records, 
+  when the Lab 3 migration runs, the schema evolves to support Users/Roles without 
+  losing any existing Ticket or Attachment data.
+- **AC-8:** Given the seed script runs, when executed, it generates active and 
+  inactive accounts for all 3 roles and populates initial Tickets, Comments, and 
+  Internal Notes.
 
 ## 10. Definition of Done
 - Complete implementation of all 11 Lab 3 sprint issues.

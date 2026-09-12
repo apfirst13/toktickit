@@ -1,0 +1,25 @@
+import { describe, it } from 'vitest';
+
+describe('Authentication API', () => {
+
+  describe('POST /api/auth/login', () => {
+    it.todo('should return 200 and session data for valid credentials (AC-01, BR-01)');
+    it.todo('should return 401 for invalid credentials (BR-01)');
+    it.todo('should return 401 for an inactive account (BR-01)');
+  });
+
+  describe('POST /api/auth/logout', () => {
+    it.todo('should clear the session and return 200');
+  });
+
+  describe('GET /api/auth/me', () => {
+    it.todo('should return 200 and current user data when authenticated');
+    it.todo('should return 401 when not authenticated');
+  });
+
+  describe('POST /api/auth/change-password', () => {
+    it.todo('should allow user with mustChangePassword=true to set a new password and clear the flag (AC-02, BR-02)');
+    it.todo('should return 400 if validation constraints fail');
+  });
+
+});

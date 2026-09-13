@@ -6,6 +6,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { generateTicketNumber } from "./utils/ticket.util.js";
+import authRoutes from "./routes/auth.routes.js";
 
 // ── Multer: store uploads in /uploads, 5 MB limit ──────────────────────────
 const UPLOAD_DIR = path.resolve("uploads");
@@ -37,6 +38,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/auth", authRoutes);
 
 /**
  * Basic health check route for the root endpoint.
@@ -91,7 +93,7 @@ app.get("/api/categories", async (req, res) => {
 // Requester list - Issue #3
 app.get("/api/requesters", async (req, res) => {
   try {
-    const requesters = await prisma.requesterUser.findMany({
+    const requesters = await prisma.user.findMany({
       where: { isActive: true },
       orderBy: { id: "asc" },
     });
@@ -275,7 +277,7 @@ app.post("/api/tickets", async (req, res) => {
     const [category, system, requester] = await Promise.all([
       prisma.category.findUnique({ where: { id: Number(categoryId) } }),
       prisma.relatedSystem.findUnique({ where: { id: Number(systemId) } }),
-      prisma.requesterUser.findUnique({ where: { id: Number(requesterId) } }),
+      prisma.user.findUnique({ where: { id: Number(requesterId) } }),
     ]);
 
     if (!category) errors.push({ field: "categoryId", message: "Category not found." });
@@ -295,7 +297,7 @@ app.post("/api/tickets", async (req, res) => {
         summary: summary.trim(),
         description: description.trim(),
         requestedPriority,
-        currentStatus: "New",
+        currentStatus: "NEW",
         requesterUserId: Number(requesterId),
         categoryId: Number(categoryId),
         relatedSystemId: Number(systemId),

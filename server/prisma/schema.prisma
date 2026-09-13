@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+enum TicketStatus {
+  NEW
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_REQUESTER
+  RESOLVED
+  CLOSED
+  REOPENED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -21,36 +45,52 @@ model RelatedSystem {
   tickets   Ticket[]
 }
 
-model RequesterUser {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tickets   Ticket[]
+model User {
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  // Password hash (must be set by authentication module)
+  passwordHash       String
+  fullName           String    
+  role               Role      @default(REQUESTER)
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tickets            Ticket[]  @relation("RequesterTickets")
+  assignedTickets    Ticket[]  @relation("AssignedTickets")
+  publicComments     PublicComment[]
+  internalNotes      InternalNote[]
 }
 
 model Ticket {
-  id                Int       @id @default(autoincrement())
-  ticketNumber      String    @unique
+  id                Int          @id @default(autoincrement())
+  ticketNumber      String       @unique
   summary           String
   description       String?
-  requestedPriority String
-  currentStatus     String    @default("New")
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  requestedPriority String       
+  itPriority        Priority?    
+  currentStatus     TicketStatus @default(NEW)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   requesterUserId   Int
-  requesterUser     RequesterUser @relation(fields: [requesterUserId], references: [id])
+  requesterUser     User         @relation("RequesterTickets", fields: [requesterUserId], references: [id])
+
+  /// Foreign key to assigned IT staff member
+  /// @Validation Only users with role IT_STAFF or ADMINISTRATOR should be assigned (enforce in API layer)
+  assignedStaffId   Int?
+  assignedStaff     User?        @relation("AssignedTickets", fields: [assignedStaffId], references: [id])
 
   categoryId        Int
-  category          Category      @relation(fields: [categoryId], references: [id])
+  category          Category     @relation(fields: [categoryId], references: [id])
 
   relatedSystemId   Int
   relatedSystem     RelatedSystem @relation(fields: [relatedSystemId], references: [id])
 
   attachments       Attachment[]
+  publicComments    PublicComment[]
+  internalNotes     InternalNote[]
 }
 
 model Attachment {
@@ -68,3 +108,26 @@ model Attachment {
   ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 }
 
+model PublicComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model InternalNote {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}

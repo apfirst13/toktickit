@@ -2,7 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error(
+    '🚨 CRITICAL: JWT_SECRET environment variable is NOT SET!\n' +
+    'Please set it before running the app:\n' +
+    '  export JWT_SECRET=your-secure-256-bit-random-key\n' +
+    'Example: JWT_SECRET=$(openssl rand -hex 32) npm start'
+  );
+}
 
 export interface AuthenticatedRequest extends Request {
   user?: {

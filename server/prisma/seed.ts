@@ -10,17 +10,20 @@ async function main() {
   const passwordHash = await bcrypt.hash('Password123!', 10);
 
   // 1. Seed Categories & Systems
+  console.log('Seeding Categories...');
   const categories = ['Account and Access', 'Hardware', 'Software', 'Network'];
   for (const name of categories) {
     await prisma.category.upsert({ where: { name }, update: {}, create: { name } });
   }
 
+  console.log('Seeding Related Systems...');
   const systems = ['Email', 'Campus Wi-Fi', 'VPN', 'LEB2 App', 'Grade Submission App', 'Printer', 'Corporate Laptop'];
   for (const name of systems) {
     await prisma.relatedSystem.upsert({ where: { name }, update: {}, create: { name } });
   }
 
   // 2. Seed Users
+  console.log('Seeding Users (Requesters, IT Staff, Admins)...');
   const users = [
     // Requesters (4 active, 1 inactive)
     { email: 'req1@toktickit.com', fullName: 'Alice Requester', role: Role.REQUESTER, isActive: true },
@@ -37,15 +40,19 @@ async function main() {
     { email: 'admin@toktickit.com', fullName: 'Super Admin', role: Role.ADMINISTRATOR, isActive: true },
   ];
 
+  let userCount = 0;
   for (const u of users) {
     await prisma.user.upsert({
       where: { email: u.email },
       update: { fullName: u.fullName, role: u.role, isActive: u.isActive, passwordHash },
       create: { ...u, passwordHash, mustChangePassword: false },
     });
+    userCount++;
   }
+  console.log(`Seeded ${userCount} users with secure hashed passwords.`);
   
   // 3. Seed Realistic Tickets
+  console.log('Seeding Tickets, Comments, and Internal Notes...');
   const catHardware = await prisma.category.findUnique({ where: { name: 'Hardware' } });
   const catSoftware = await prisma.category.findUnique({ where: { name: 'Software' } });
   const catNetwork = await prisma.category.findUnique({ where: { name: 'Network' } });
@@ -100,10 +107,12 @@ async function main() {
       }
     ];
 
+    let ticketCount = 0;
     for (const t of tickets) {
       const existing = await prisma.ticket.findFirst({ where: { summary: t.summary } });
       if (!existing) {
         const createdTicket = await prisma.ticket.create({ data: t });
+        ticketCount++;
         
         await prisma.publicComment.create({
           data: {
@@ -132,14 +141,17 @@ async function main() {
         }
       }
     }
+    console.log(`Seeded ${ticketCount} new tickets with initial comments and notes.`);
+  } else {
+    console.warn('Skipped ticket seeding due to missing relations.');
   }
 
-  console.log('Lab 3 Seeding completed successfully!');
+  console.log('✅ Lab 3 Seeding completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {

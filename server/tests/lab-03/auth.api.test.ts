@@ -78,13 +78,13 @@ describe('Authentication API', () => {
       expect(res.body).toEqual({ error: 'Invalid email or password.' });
     });
 
-    it('should return 403 for an inactive account (BR-04)', async () => {
+    it('should return 401 for an inactive account (BR-01)', async () => {
       const res = await request(app)
         .post('/api/auth/login')
         .send({ email: 'test_inactive@toktickit.com', password: 'Password123!' });
       
-      expect(res.status).toBe(403);
-      expect(res.body).toEqual({ error: 'Account is inactive. Please contact your administrator.' });
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: 'Invalid email or password.' });
     });
   });
 

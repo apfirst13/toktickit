@@ -33,8 +33,29 @@
 - User table with Name, Email, Role badge, Status badge (Active/Inactive), and Edit action.
 - Edit/Create drawer with input validation and clear confirmation when generating a temporary password.
 
+### 2.5 Requester Ticket Detail (Updated)
+- Integrates the new authenticated Requester identity, removing the old Development Requester selector.
+- Retains existing Ticket and Attachment ownership protection.
+- Adds an append-only Public Comment section visible to all permitted roles.
+- Introduces a "Problem Appears Resolved" action button, allowing the Requester to indicate resolution without formally altering the IT status.
+
 ## 3. Responsive and Visual Checklist
 - [ ] Desktop (≥992px): Centered layouts, table views unclipped.
 - [ ] Tablet (768-991px): Adaptive grid collapse, legible typography.
 - [ ] Mobile (<768px): Vertical stacking, touch-friendly hit areas (≥44px), zero horizontal overflow.
 - [ ] Distinct styling between Public Comments and Internal Notes.
+
+## 4. Screen Modes and Feedback States
+- **Screen Modes:**
+  - **Create Mode:** Empty forms ready for input (e.g., New Ticket, Create User).
+  - **View Mode:** Read-only data presentation (e.g., Ticket Detail for non-owners, Public Comments).
+  - **Edit Mode:** Interactive fields pre-populated with existing data (e.g., IT Staff updating priority, Admin editing user status).
+- **Feedback States:**
+  - **Loading:** Spinners or skeleton loaders during data fetch/submit operations.
+  - **Saving & Success:** Brief disabled states during network requests followed by toast notifications (e.g., "User saved successfully").
+  - **Validation:** Inline red text under fields failing business rules (e.g., "Password too short", "Invalid email").
+  - **Empty/No-results:** Clear graphic or text when lists are empty (e.g., "No tickets match your filters").
+  - **Forbidden (403):** Distinct UI feedback when attempting unauthorized actions.
+  - **Not-found (404):** Dedicated page/message when a resource does not exist or belongs to another user.
+  - **Conflict (409):** Inline or toast error when attempting duplicate creations (e.g., "Email already registered").
+  - **Safe API-failure (500):** Generic error fallback (e.g., "Something went wrong, please try again later") without exposing stack traces.

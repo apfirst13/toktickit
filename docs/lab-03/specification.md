@@ -53,6 +53,8 @@ The system must transition from simulated identity to production-grade access co
   - An Administrator cannot deactivate or revoke the role of the last active Administrator in the system.
   - User records must never be hard-deleted from the database; lifecycle is managed via `isActive`.
 - **BR-09 (Credential Security):** Passwords must be hashed with bcrypt/argon2 before persistence. Plaintext passwords must never be logged, transmitted in responses, or committed.
+- **BR-10 (Ticket Assignment Rule):** Ticket ownership can only be assigned to an active user whose role is `IT_STAFF` or `ADMINISTRATOR`. The backend must reject assignments to inactive users or incorrect roles.
+- **BR-11 (IT Priority Change Rule):** The `Requested Priority` set by the Requester at ticket creation must never be modified by any role. Only `IT Priority` may be modified by IT Staff or Administrators.
 
 ## 6. Authorization Matrix
 
@@ -82,6 +84,14 @@ The system must transition from simulated identity to production-grade access co
   - `id` (Int, PK), `ticketId` (FK), `authorId` (FK to `User`), `content` (Text), `createdAt`.
 - **Model `InternalNote`:**
   - `id` (Int, PK), `ticketId` (FK), `authorId` (FK to `User`), `content` (Text), `createdAt`.
+- **Indexes:**
+  - `User.email` (Unique) for fast login lookups.
+  - `Ticket.assignedStaffId`, `Ticket.currentStatus`, `Ticket.itPriority` to support efficient staff queue filtering and sorting.
+- **Migration Strategy:**
+  - The Lab 2 `RequesterUser` table will be renamed/migrated to the new `User` model. All existing records will be assigned the role `REQUESTER` to preserve ticket ownership and prevent data loss.
+- **Seed Decisions:**
+  - The seed script must be idempotent (safe to run repeatedly using upserts).
+  - It will generate active and inactive accounts covering all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`) and populate initial Tickets, Comments, and Internal Notes.
 
 ## 8. API Contract Summary
 - Detailed schema definitions are specified in `docs/lab-03/api-spec.md`.
@@ -94,16 +104,34 @@ The system must transition from simulated identity to production-grade access co
 - **AC-04:** Given a Requester account, any request targeting `/api/tickets/:id/notes` returns 403 Forbidden without leaking note existence.
 - **AC-05:** Given an IT Staff user, when accessing the queue, tickets can be filtered by category, status, priority, and searched by ticket number or summary.
 - **AC-06:** Given an Administrator, when attempting to deactivate their own account or the last active administrator, the operation is blocked with 400 Bad Request.
-- **AC-7:** Given the Lab 2 database with existing Requester and Ticket records, 
+- **AC-07:** Given the Lab 2 database with existing Requester and Ticket records, 
   when the Lab 3 migration runs, the schema evolves to support Users/Roles without 
   losing any existing Ticket or Attachment data.
-- **AC-8:** Given the seed script runs, when executed, it generates active and 
+- **AC-08:** Given the seed script runs, when executed, it generates active and 
   inactive accounts for all 3 roles and populates initial Tickets, Comments, and 
   Internal Notes.
+- **AC-09:** Given an authenticated user, when attempting to post a Public Comment, the comment is successfully appended and visible to all permitted roles.
+- **AC-10:** Given an authenticated Requester, when marking a ticket as "Problem Appears Resolved", the backend successfully records this indication without changing the ticket's formal status.
+- **AC-11:** Given an IT Staff user, when attempting to claim or reassign a ticket, the ownership is updated successfully.
+- **AC-12:** Given an IT Staff user, when attempting an invalid status transition (e.g., from Closed back to New), the backend rejects the operation with a 400 Bad Request.
+- **AC-13:** Given an Administrator creating a user, when supplying an email that already exists in the system, the backend rejects the creation with a conflict error.
+- **AC-14:** Given assignment to an inactive user or user without IT_STAFF/ ADMINISTRATOR role, the backend rejects the assignment. (BR-10)
+- **AC-15:** Given a request attempting to modify Requested Priority after ticket creation, the backend rejects or ignores the change. (BR-11)
 
-## 10. Definition of Done
+## 10. UI Specification Summary
+- **Screen Structure & Roles:** The UI reuses the Zen Green design system. Role-based navigation prevents unauthorized access to views.
+- **Modes:** Interfaces define distinct Create, View, and Edit modes with clear editable vs read-only styling boundaries.
+- **Controls & Feedback:** Screens provide comprehensive feedback states including loading spinners, save success toasts, inline validation errors, empty/no-results placeholders, forbidden access messages, not-found states, conflict errors, and safe generic API failure feedback.
+- **Responsive Rules:** All interfaces maintain usability and avoid horizontal clipping across Desktop (≥992px), Tablet (768-991px), and Mobile (<768px).
+- For complete UI details, refer to `docs/lab-03/ui-spec.md`.
+
+## 11. Definition of Done
 - Complete implementation of all 11 Lab 3 sprint issues.
 - 100% PASS on automated tests: Unit, API, UI, Authorization, Regression, and E2E Playwright suites.
 - Strict compliance with Zen Green tokens and responsive viewports without horizontal clipping.
 - Verified commit timestamps proving `specification.md` existed before feature PR completions.
 - Peer review approved and merged into `lab3-staging` and `main`.
+
+## 12. Assumptions and Decisions
+- **Session/Token Mechanism:** Stateless JWT (JSON Web Tokens) via HTTP Bearer headers is utilized for authentication, rather than server-side session stores, to minimize backend state overhead. Token invalidation on logout is handled client-side.
+- **Password Complexity:** While FR-02 mandates a password change, complexity rules (minimum length of 8 characters) have been enforced to maintain a basic security baseline, despite not being explicitly defined in the initial stakeholder request.

@@ -16,6 +16,48 @@ let authToken: string;
 let authToken2: string;
 
 describe("POST /api/tickets", () => {
+
+    it("should ignore malicious requesterId in body and use token identity (AC-03)", async () => {
+      // Send as user 1, but try to assign requesterId of user 2
+      const res = await request(app).post("/api/tickets").set("Authorization", "Bearer " + authToken).send({
+        summary: "Malicious Ticket",
+        description: "Trying to forge the requester ID",
+        requestedPriority: "Low",
+        categoryId,
+        systemId,
+        requesterId: 999999, // Fake ID
+        requesterUserId: 999999
+      });
+      
+      expect(res.status).toBe(201);
+      // The ticket should be created for user 1, not 999999
+      expect(res.body.requesterUserId).toBe(requesterId);
+    });
+
+
+    it("should return 404 when accessing another user's ticket to prevent existence leak", async () => {
+      // Create ticket as user 1
+      const created = await request(app).post("/api/tickets").set("Authorization", "Bearer " + authToken).send({
+        summary: "Private Ticket",
+        description: "This is a private ticket that shouldn't be leaked",
+        requestedPriority: "Low",
+        categoryId,
+        systemId
+      });
+      const tId = created.body.id;
+
+      // Access as user 2
+      const res = await request(app).get(`/api/tickets/${tId}`).set("Authorization", "Bearer " + authToken2);
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe("Ticket not found");
+    });
+
+
+    it("should return 401 Unauthorized when no token is provided", async () => {
+      const res = await request(app).get("/api/tickets");
+      expect(res.status).toBe(401);
+    });
+
   beforeAll(async () => {
     // Clean up any leftover test data first
     await prisma.ticket.deleteMany({

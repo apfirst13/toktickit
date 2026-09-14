@@ -81,7 +81,7 @@ export const getTicketById = async (req: AuthenticatedRequest, res: Response): P
     }
 
     if (ticket.requesterUserId !== requesterId) {
-      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     return res.status(200).json(ticket);
@@ -180,7 +180,7 @@ export const uploadAttachment = async (req: AuthenticatedRequest, res: Response)
 
     if (ticket.requesterUserId !== requesterId) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     if (ticket.attachments.length >= 5) {
@@ -220,7 +220,7 @@ export const downloadAttachment = async (req: AuthenticatedRequest, res: Respons
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
     if (ticket.requesterUserId !== requesterId) {
-      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     const attachment = await prisma.attachment.findUnique({ where: { id: attachmentId } });
@@ -256,7 +256,7 @@ export const removeAttachment = async (req: AuthenticatedRequest, res: Response)
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
     if (ticket.requesterUserId !== requesterId) {
-      return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     const attachment = await prisma.attachment.findUnique({ where: { id: attachmentId } });
@@ -290,7 +290,7 @@ export const addPublicComment = async (req: AuthenticatedRequest, res: Response)
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
     if (ticket.requesterUserId !== requesterId) {
-      return res.status(403).json({ error: "Forbidden" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     const comment = await prisma.publicComment.create({
@@ -315,7 +315,7 @@ export const setAppearsResolved = async (req: AuthenticatedRequest, res: Respons
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
     if (ticket.requesterUserId !== requesterId) {
-      return res.status(403).json({ error: "Forbidden" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     if (ticket.currentStatus === "RESOLVED" || ticket.currentStatus === "CLOSED") {

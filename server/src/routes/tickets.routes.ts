@@ -6,7 +6,9 @@ import {
   createTicket,
   uploadAttachment,
   downloadAttachment,
-  removeAttachment
+  removeAttachment,
+  addPublicComment,
+  setAppearsResolved
 } from '../controllers/tickets.controller.js';
 import multer from 'multer';
 import crypto from 'crypto';

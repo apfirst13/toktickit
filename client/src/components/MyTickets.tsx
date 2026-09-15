@@ -48,7 +48,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
       ...(sortBy ? { sortBy } : {})
     });
     
-    fetch(`/api/tickets?${query.toString()}`)
+    fetch(`/api/tickets?${query.toString()}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` } })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load tickets");
         return res.json();

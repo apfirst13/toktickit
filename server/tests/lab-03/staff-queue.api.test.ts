@@ -60,12 +60,21 @@ describe("IT Staff Queue API", () => {
     expect(res.status).toBe(403);
   });
 
-  it("should return 200 and paginated tickets for staff (API-04)", async () => {
+  it("should return 200 and paginated tickets for staff (API-04) without leaking passwordHash", async () => {
     const res = await request(app).get("/api/staff/queue").set("Authorization", "Bearer " + staffToken);
     expect(res.status).toBe(200);
     expect(res.body.pagination).toBeDefined();
     expect(res.body.pagination.total).toBe(3);
     expect(res.body.data.length).toBe(3);
+    
+    // Test DTO explicitly excludes passwordHash
+    const firstTicket = res.body.data[0];
+    if (firstTicket.requesterUser) {
+      expect(firstTicket.requesterUser.passwordHash).toBeUndefined();
+    }
+    if (firstTicket.assignedStaff) {
+      expect(firstTicket.assignedStaff.passwordHash).toBeUndefined();
+    }
   });
 
   it("should search correctly by ticketNumber or summary", async () => {

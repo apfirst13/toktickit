@@ -48,8 +48,28 @@ export const getQueue = async (req: AuthenticatedRequest, res: Response): Promis
       }
     });
 
+    const ticketDTOs = tickets.map(ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      summary: ticket.summary,
+      description: ticket.description,
+      currentStatus: ticket.currentStatus,
+      requestedPriority: ticket.requestedPriority,
+      itPriority: ticket.itPriority,
+      createdAt: ticket.createdAt,
+      updatedAt: ticket.updatedAt,
+      categoryId: ticket.categoryId,
+      relatedSystemId: ticket.relatedSystemId,
+      requesterUserId: ticket.requesterUserId,
+      assignedStaffId: ticket.assignedStaffId,
+      category: ticket.category,
+      relatedSystem: ticket.relatedSystem,
+      requesterUser: ticket.requesterUser ? { fullName: ticket.requesterUser.fullName } : null,
+      assignedStaff: ticket.assignedStaff ? { fullName: ticket.assignedStaff.fullName } : null
+    }));
+
     res.status(200).json({
-      data: tickets,
+      data: ticketDTOs,
       pagination: {
         total,
         page: pageNumber,

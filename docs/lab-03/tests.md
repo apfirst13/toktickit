@@ -25,7 +25,7 @@ The testing approach relies on layered automation covering 7 primary types:
 | **SEC-03** | SEC | FR-07, BR-04, AC-04 | Requester fetching/posting internal notes | 403 Forbidden without leaking data | `server/tests/lab-03/comments-notes.api.test.ts` | TBD |
 | **SEC-04** | SEC | FR-05, BR-07 | Requester attempting to fetch staff queue | 403 Forbidden | `server/tests/lab-03/authorization.api.test.ts` | TBD |
 | **SEC-05** | SEC | FR-08, BR-07 | Non-admin attempting to fetch user list | 403 Forbidden | `server/tests/lab-03/authorization.api.test.ts` | TBD |
-| **API-04** | API | FR-05, AC-05 | Staff Queue Search and Filters | 200 OK; correct subset of tickets returned | `server/tests/lab-03/staff-queue.api.test.ts` | TBD |
+| **API-04** | API | FR-05, AC-05 | Staff Queue Search and Filters | 200 OK; correct subset of tickets returned | `server/tests/lab-03/staff-queue.api.test.ts` | PASS |
 | **API-05** | API | FR-06, BR-06 | IT Staff valid status transitions | 200 OK; status updated successfully | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | TBD |
 | **API-06** | API | BR-06 | IT Staff invalid status transition | 400 Bad Request | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | TBD |
 | **API-07** | API | FR-04, BR-05 | Requester attempting to formally update status to RESOLVED | 403 Forbidden | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | TBD |
@@ -36,7 +36,7 @@ The testing approach relies on layered automation covering 7 primary types:
 | **API-12** | API | BR-08 | Ensure no hard delete API exists | Manual Code Review | Code explicitly lacks DELETE endpoints | TBD |
 | **UI-01** | UI Comp | FR-01, AC-01 | Login Form | Submits to auth API, captures session | `client/src/tests/lab-03/Login.test.tsx` | TBD |
 | **UI-02** | UI Comp | FR-02, AC-02 | Mandatory Password Change Redirect | Redirects to change password screen if flag true | `client/src/tests/lab-03/ChangePassword.test.tsx` | TBD |
-| **UI-03** | UI Comp | FR-05 | IT Staff Queue Data Table | Displays columns correctly, handles pagination | `client/src/tests/lab-03/StaffTicketQueue.test.tsx` | TBD |
+| **UI-03** | UI Comp | FR-05 | IT Staff Queue Data Table | Displays columns correctly, handles pagination | `client/src/tests/lab-03/StaffTicketQueue.test.tsx` | PASS |
 | **UI-04** | UI Style| FR-07 | Internal Note Visual Distinction | Renders with golden tint/label distinct from comments | `client/src/tests/lab-03/StaffTicketDetail.test.tsx` | TBD |
 | **UI-05** | UI Comp | FR-08 | Admin User Management Table | Displays users, status badges, and edit actions | `client/src/tests/lab-03/UserManagement.test.tsx` | TBD |
 | **REG-01** | Regress | FR-03, BR-03 | Requester Lab 2 Ticket Creation | Creating tickets still works under new auth | `server/tests/lab-02/tickets.api.test.ts` | TBD |

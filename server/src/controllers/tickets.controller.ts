@@ -72,7 +72,7 @@ export const getTicketById = async (req: AuthenticatedRequest, res: Response): P
       include: {
         category: { select: { name: true } },
         relatedSystem: { select: { name: true } },
-        attachments: { where: { isRemoved: false } }
+        attachments: true
       }
     });
 

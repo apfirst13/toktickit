@@ -84,6 +84,11 @@ describe("IT Staff Queue API", () => {
     expect(res1.body.data.length).toBe(1);
     expect(res1.body.data[0].ticketNumber).toBe("T-002");
 
+    // requestedPriority
+    const resReq = await request(app).get("/api/staff/queue?requestedPriority=HIGH").set("Authorization", "Bearer " + staffToken);
+    expect(resReq.body.data.length).toBe(1);
+    expect(resReq.body.data[0].ticketNumber).toBe("T-002");
+
     // itPriority
     const res2 = await request(app).get("/api/staff/queue?itPriority=URGENT").set("Authorization", "Bearer " + staffToken);
     expect(res2.body.data.length).toBe(1);
@@ -92,6 +97,17 @@ describe("IT Staff Queue API", () => {
     const res3 = await request(app).get("/api/staff/queue?assignedTo=unassigned").set("Authorization", "Bearer " + staffToken);
     expect(res3.body.data.length).toBe(2); // T-001 and T-003
     expect(res3.body.data.map((t: any) => t.ticketNumber)).not.toContain("T-002");
+
+    // Category (insensitive check using the first ticket's category name)
+    const categoryName = res1.body.data[0].category?.name;
+    if (categoryName) {
+      const resCat = await request(app).get(`/api/staff/queue?category=${categoryName.toLowerCase()}`).set("Authorization", "Bearer " + staffToken);
+      expect(resCat.body.data.length).toBeGreaterThan(0);
+      expect(resCat.body.data[0].category.name).toBe(categoryName);
+      
+      const resCatEmpty = await request(app).get(`/api/staff/queue?category=UnknownCategory999`).set("Authorization", "Bearer " + staffToken);
+      expect(resCatEmpty.body.data.length).toBe(0);
+    }
   });
 
   it("should sort correctly asc and desc", async () => {

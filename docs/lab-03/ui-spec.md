@@ -18,9 +18,11 @@
 - Password change view enforces criteria checklist: Minimum 8 characters, uppercase, lowercase, numeric, and special character.
 
 ### 2.2 IT Staff Ticket Queue Screen
-- Header toolbar with Ticket Search input, Category dropdown, Priority filter, and Status filter.
+- Header toolbar with Ticket Search input, Category dropdown, Priority filter (separate Requested vs IT Priority), Status filter, and Owner filter ("All", "Unassigned", "Assigned to Me" - where "Assigned to Me" automatically filters by the current authenticated user's JWT identity).
 - Desktop (≥992px): Multi-column table (Ticket No, Created, Summary, Category, Req Priority, IT Priority, Status, Owner, Action).
-- Tablet & Mobile (<992px): Stacked responsive card layout; preserves quick actions and ownership badges without horizontal scrolling.
+- Tablet & Mobile (<992px): Stacked responsive card layout. Primary fields shown on cards: Ticket Number, Summary, Status Badge, and Priority Badge. Other fields expand or are available in detail view without horizontal scrolling.
+- **Empty State:** Distinct placeholder UI when no tickets exist in the system at all.
+- **No-Results State:** Distinct message shown when tickets exist but none match the current search/filter criteria. Must include a clear "Clear Filters" button to reset the query.
 
 ### 2.3 IT Staff Ticket Detail Screen
 - Distinct visual separation between Ticket Metadata (editable fields marked with standard borders; read-only with pale green tint).

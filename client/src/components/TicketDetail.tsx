@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
 interface UserInfo {
+  id?: number;
   fullName: string;
-  role: string;
+  role?: string;
 }
 
 interface PublicComment {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: UserInfo;
+}
+
+interface InternalNote {
   id: number;
   content: string;
   createdAt: string;
@@ -29,41 +37,57 @@ interface TicketDetailData {
   description: string;
   currentStatus: string;
   requestedPriority: string;
+  itPriority: string;
   category: { name: string };
   relatedSystem: { name: string };
   createdAt: string;
   attachments: Attachment[];
   publicComments: PublicComment[];
   appearsResolved: boolean;
+  requesterUser: { fullName: string } | null;
+  assignedStaff: { fullName: string } | null;
+  assignedStaffId: number | null;
+  requesterUserId: number;
 }
 
 interface TicketDetailProps {
   ticketId: number;
-  requesterId: number;
+  currentUser: { id: number; role: string; fullName?: string };
   onBack: () => void;
 }
 
 const ZEN = "#006B3C";
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const ALLOWED_EXTENSIONS = "JPG, PNG, WEBP, PDF";
 
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  NEW: ["OPEN", "CANCELLED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED"],
+  RESOLVED: ["CLOSED", "REOPENED"],
+  REOPENED: ["IN_PROGRESS"],
+  CLOSED: [],
+  CANCELLED: []
+};
+
 function priorityBadge(priority: string) {
-  const map: Record<string, string> = { High: "danger", Medium: "warning", Low: "success" };
-  return map[priority] ?? "secondary";
+  const map: Record<string, string> = { HIGH: "danger", MEDIUM: "warning", LOW: "success" };
+  return map[priority?.toUpperCase()] ?? "secondary";
 }
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    New: "info",
-    "In Progress": "primary",
-    Resolved: "success",
-    Closed: "secondary",
+    NEW: "info",
+    IN_PROGRESS: "primary",
+    RESOLVED: "success",
+    CLOSED: "secondary",
   };
-  return map[status] ?? "secondary";
+  return map[status?.toUpperCase()] ?? "secondary";
 }
 
-export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProps) {
+export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProps) {
   const [ticket, setTicket] = useState<TicketDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,9 +106,25 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
   
   const [resolving, setResolving] = useState(false);
 
+  // Staff specific state
+  const isStaff = currentUser.role === "IT_STAFF" || currentUser.role === "ADMINISTRATOR";
+  const [staffUsers, setStaffUsers] = useState<UserInfo[]>([]);
+  const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
+  const [newNote, setNewNote] = useState("");
+  const [noting, setNoting] = useState(false);
+
+  const [editStatus, setEditStatus] = useState("");
+  const [editItPriority, setEditItPriority] = useState("");
+  const [editAssignedTo, setEditAssignedTo] = useState<string>("");
+  const [savingMeta, setSavingMeta] = useState(false);
+
   useEffect(() => {
     loadTicket();
-  }, [ticketId, requesterId]);
+    if (isStaff) {
+      loadStaffUsers();
+      loadInternalNotes();
+    }
+  }, [ticketId]);
 
   const getToken = () => localStorage.getItem("token") || "";
 
@@ -94,18 +134,94 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
     fetch(`/api/tickets/${ticketId}`, {
       headers: { "Authorization": `Bearer ${getToken()}` }
     })
-      .then((r) => {
+      .then(r => {
         if (!r.ok) throw new Error(r.status === 403 ? "Access denied." : "Failed to load ticket.");
         return r.json();
       })
-      .then((data) => {
+      .then(data => {
         setTicket(data);
+        setEditStatus(data.currentStatus);
+        setEditItPriority(data.itPriority || "LOW");
+        setEditAssignedTo(data.assignedStaffId ? String(data.assignedStaffId) : "unassigned");
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(err => {
         setError(err.message);
         setLoading(false);
       });
+  };
+
+  const loadStaffUsers = () => {
+    fetch(`/api/staff/users`, {
+      headers: { "Authorization": `Bearer ${getToken()}` }
+    })
+      .then(r => r.json())
+      .then(data => setStaffUsers(data))
+      .catch(() => {});
+  };
+
+  const loadInternalNotes = () => {
+    fetch(`/api/tickets/${ticketId}/notes`, {
+      headers: { "Authorization": `Bearer ${getToken()}` }
+    })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setInternalNotes(data); })
+      .catch(() => {});
+  };
+
+  const handleSaveMeta = async () => {
+    setSavingMeta(true);
+    try {
+      const payload: any = {
+        itPriority: editItPriority,
+        assignedStaffId: editAssignedTo === "unassigned" ? null : Number(editAssignedTo)
+      };
+      if (editStatus !== ticket?.currentStatus) {
+        payload.status = editStatus;
+      }
+      
+      const res = await fetch(`/api/staff/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Failed to update");
+      }
+      loadTicket();
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setSavingMeta(false);
+    }
+  };
+
+  const handleNoteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNote.trim()) return;
+
+    setNoting(true);
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}/notes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ content: newNote.trim() })
+      });
+      if (!res.ok) throw new Error("Failed to post note");
+      setNewNote("");
+      loadInternalNotes();
+    } catch (err) {
+      alert("Failed to post note.");
+    } finally {
+      setNoting(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +231,7 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
     if (!file) { setSelectedFile(null); return; }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setUploadError(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS}.`);
+      setUploadError(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS}`);
       setSelectedFile(null);
       e.target.value = "";
       return;
@@ -286,8 +402,9 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
     );
   }
 
-  const activeAttachments = ticket.attachments.filter((a) => !a.isRemoved);
+  const activeAttachments = ticket.attachments?.filter((a) => !a.isRemoved) || [];
   const canUpload = activeAttachments.length < 5;
+  const allowedTransitions = ALLOWED_TRANSITIONS[ticket.currentStatus] || [];
 
   return (
     <div className="container py-4" style={{ maxWidth: 860 }}>
@@ -338,7 +455,7 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
           Back to Tickets
         </button>
 
-        {(!ticket.appearsResolved && ticket.currentStatus !== "RESOLVED" && ticket.currentStatus !== "CLOSED") && (
+        {(!ticket.appearsResolved && ticket.currentStatus !== "RESOLVED" && ticket.currentStatus !== "CLOSED" && !isStaff) && (
           <button 
             className="btn btn-sm btn-success" 
             onClick={handleAppearsResolved}
@@ -355,7 +472,7 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
         data-testid="ticket-detail-view"
       >
         <div className="card-body">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 gap-2">
             <div>
               <span className="text-muted small d-block mb-1">Ticket Number</span>
               <h4 className="mb-0 fw-bold" style={{ color: ZEN }} data-testid="detail-number">
@@ -364,15 +481,78 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
                   <span className="badge bg-success ms-2 fs-6">Appears Resolved</span>
                 )}
               </h4>
+              <div className="mt-2 text-muted small">
+                Requester: <strong>{ticket.requesterUser?.fullName}</strong>
+              </div>
             </div>
-            <div className="d-flex gap-2">
-              <span className={`badge bg-${statusBadge(ticket.currentStatus)} fs-6`}>
-                {ticket.currentStatus}
-              </span>
-              <span className={`badge bg-${priorityBadge(ticket.requestedPriority)} fs-6`}>
-                {ticket.requestedPriority}
-              </span>
-            </div>
+            
+            {!isStaff ? (
+              <div className="d-flex gap-2">
+                <span className={`badge fs-6 bg-${statusBadge(ticket.currentStatus)}`}>
+                  {ticket.currentStatus}
+                </span>
+                <span className={`badge fs-6 bg-${priorityBadge(ticket.requestedPriority)}`}>
+                  Req: {ticket.requestedPriority}
+                </span>
+                <span className={`badge fs-6 bg-${priorityBadge(ticket.itPriority || ticket.requestedPriority)}`}>
+                  IT: {ticket.itPriority || "Unset"}
+                </span>
+                <span className="badge bg-info text-dark fs-6">
+                  {ticket.assignedStaff ? ticket.assignedStaff.fullName : "Unassigned"}
+                </span>
+              </div>
+            ) : (
+              <div className="d-flex flex-column gap-2 p-3 bg-light border rounded" style={{ minWidth: "280px" }}>
+                <strong className="text-dark small border-bottom pb-1 mb-1">IT Operational Controls</strong>
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className="small text-muted">Status:</span>
+                  <select 
+                    className="form-select form-select-sm w-auto" 
+                    value={editStatus} 
+                    onChange={e => setEditStatus(e.target.value)}
+                    data-testid="status-select"
+                  >
+                    <option value={ticket.currentStatus}>{ticket.currentStatus}</option>
+                    {allowedTransitions.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className="small text-muted">IT Priority:</span>
+                  <select 
+                    className="form-select form-select-sm w-auto" 
+                    value={editItPriority} 
+                    onChange={e => setEditItPriority(e.target.value)}
+                    data-testid="itpriority-select"
+                  >
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                  </select>
+                </div>
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className="small text-muted">Assign To:</span>
+                  <select 
+                    className="form-select form-select-sm w-auto" 
+                    value={editAssignedTo} 
+                    onChange={e => setEditAssignedTo(e.target.value)}
+                    data-testid="assign-select"
+                  >
+                    <option value="unassigned">Unassigned</option>
+                    {staffUsers.map(u => (
+                      <option key={u.id} value={String(u.id)}>{u.fullName}</option>
+                    ))}
+                  </select>
+                </div>
+                <button 
+                  className="btn btn-sm btn-primary mt-2" 
+                  disabled={savingMeta || (editStatus === ticket.currentStatus && editItPriority === (ticket.itPriority || "LOW") && editAssignedTo === (ticket.assignedStaffId ? String(ticket.assignedStaffId) : "unassigned"))}
+                  onClick={handleSaveMeta}
+                  data-testid="save-meta-btn"
+                >
+                  {savingMeta ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="row mb-3 g-3">
@@ -402,14 +582,14 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
           <div className="row g-3">
             <div className="col-12 col-md-4">
               <p className="text-muted small mb-1">Category</p>
-              <strong data-testid="detail-category">{ticket.category.name}</strong>
+              <strong data-testid="detail-category">{ticket.category?.name || 'N/A'}</strong>
             </div>
             <div className="col-12 col-md-4">
               <p className="text-muted small mb-1">Related System</p>
-              <strong data-testid="detail-system">{ticket.relatedSystem.name}</strong>
+              <strong data-testid="detail-system">{ticket.relatedSystem?.name || 'N/A'}</strong>
             </div>
             <div className="col-12 col-md-4">
-              <p className="text-muted small mb-1">Priority</p>
+              <p className="text-muted small mb-1">Req Priority</p>
               <strong data-testid="detail-priority">{ticket.requestedPriority}</strong>
             </div>
           </div>
@@ -418,7 +598,7 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
 
       <div className="row g-4">
         <div className="col-md-7">
-          <div className="card shadow-sm h-100">
+          <div className="card shadow-sm h-100 mb-4">
             <div className="card-header bg-white">
               <strong>Public Comments</strong>
             </div>
@@ -455,6 +635,46 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
               </form>
             </div>
           </div>
+
+          {isStaff && (
+            <div className="card shadow-sm h-100 border-warning">
+              <div className="card-header" style={{ backgroundColor: "#FFFBEB", borderBottom: "1px solid #F59E0B" }}>
+                <strong className="text-warning-emphasis">Internal Operational Notes - IT Staff Only</strong>
+              </div>
+              <div className="card-body d-flex flex-column" style={{ backgroundColor: "#FFFBEB" }}>
+                <div className="flex-grow-1 mb-3" style={{ maxHeight: 300, overflowY: 'auto' }}>
+                  {internalNotes && internalNotes.length > 0 ? (
+                    internalNotes.map((note) => (
+                      <div key={note.id} className="mb-3 p-3 border rounded bg-white" style={{ borderColor: "#FCD34D" }}>
+                        <div className="d-flex justify-content-between mb-2 border-bottom pb-2">
+                          <strong>{note.author.fullName} <span className="badge bg-warning text-dark ms-1">{note.author.role}</span></strong>
+                          <small className="text-muted">{new Date(note.createdAt).toLocaleString()}</small>
+                        </div>
+                        <div style={{ whiteSpace: "pre-wrap" }}>{note.content}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted small">No internal notes yet.</p>
+                  )}
+                </div>
+                <form onSubmit={handleNoteSubmit} className="mt-auto pt-3 border-top" style={{ borderColor: "#F59E0B" }}>
+                  <div className="mb-2">
+                    <textarea 
+                      className="form-control" 
+                      rows={2} 
+                      placeholder="Add an internal note..." 
+                      value={newNote}
+                      onChange={e => setNewNote(e.target.value)}
+                      required
+                    ></textarea>
+                  </div>
+                  <button type="submit" className="btn btn-sm btn-warning" disabled={noting || !newNote.trim()}>
+                    {noting ? "Saving Note..." : "Save Internal Note"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="col-md-5">
@@ -464,13 +684,13 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
               <span className="badge bg-secondary">{activeAttachments.length} / 5</span>
             </div>
             <div className="card-body">
-              {ticket.attachments.length === 0 ? (
+              {ticket.attachments?.length === 0 ? (
                 <p className="text-muted small mb-3" data-testid="no-attachments">
                   No attachments yet.
                 </p>
               ) : (
                 <ul className="list-group mb-3" data-testid="attachment-list">
-                  {ticket.attachments.map((att) => (
+                  {ticket.attachments?.map((att) => (
                     <li
                       key={att.id}
                       className="list-group-item d-flex justify-content-between align-items-center"
@@ -486,7 +706,7 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
                           {att.fileName}
                         </span>
                         <small className="text-muted">
-                          ({(att.fileSize / 1024).toFixed(1)} KB)
+                          {(att.fileSize / 1024).toFixed(1)} KB
                         </small>
                         {att.isRemoved && (
                           <span className="badge bg-danger ms-2" data-testid={`removed-badge-${att.id}`}>
@@ -499,17 +719,21 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
                           <button
                             className="btn btn-sm btn-outline-primary"
                             onClick={() => handleDownload(att.id, att.fileName)}
+                            title="Download"
                             data-testid={`download-attach-${att.id}`}
                           >
-                            DL
+                            ⬇️
                           </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => handleRemove(att.id)}
-                            data-testid={`remove-attach-${att.id}`}
-                          >
-                            Del
-                          </button>
+                          {(ticket.requesterUserId === currentUser.id || isStaff) && (
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleRemove(att.id)}
+                              title="Remove"
+                              data-testid={`remove-attach-${att.id}`}
+                            >
+                              ❌
+                            </button>
+                          )}
                         </div>
                       )}
                     </li>
@@ -517,54 +741,38 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
                 </ul>
               )}
 
-              {canUpload ? (
-                <form
-                  onSubmit={handleUpload}
-                  className="mt-2 p-3 rounded border bg-light"
-                  data-testid="upload-form"
-                >
-                  <h6 className="mb-3 fw-semibold" style={{ color: ZEN }}>
-                    Add Attachment
-                  </h6>
-
-                  {uploadSuccess && (
-                    <div className="alert alert-success py-2 small" data-testid="upload-success">
-                      {uploadSuccess}
-                    </div>
-                  )}
-                  {uploadError && (
-                    <div className="alert alert-danger py-2 small" data-testid="upload-error">
-                      {uploadError}
-                    </div>
-                  )}
-
+              {!canUpload && (
+                <div data-testid="max-attach-warning" className="text-warning small mb-3">
+                  Maximum of 5 attachments reached.
+                </div>
+              )}
+              {canUpload && (ticket.requesterUserId === currentUser.id || isStaff) && (
+                <form data-testid="upload-form" onSubmit={handleUpload}>
                   <div className="mb-2">
-                    <label className="form-label small mb-1">
-                      File <span className="text-muted">(Max 5 MB — {ALLOWED_EXTENSIONS})</span>
-                    </label>
                     <input
-                      ref={fileInputRef}
                       type="file"
                       className="form-control form-control-sm"
-                      accept=".jpg,.jpeg,.png,.webp,.pdf"
+                      ref={fileInputRef}
                       onChange={handleFileChange}
+                      disabled={uploading}
                       data-testid="file-input"
                     />
+                    <small className="text-muted d-block mt-1">
+                      Allowed: {ALLOWED_EXTENSIONS}. Max 5MB.
+                    </small>
                   </div>
+                  {uploadError && <div data-testid="upload-error" className="text-danger small mb-2">{uploadError}</div>}
+                  {uploadSuccess && <div data-testid="upload-success" className="text-success small mb-2">{uploadSuccess}</div>}
+                  
                   <button
                     type="submit"
-                    className="btn btn-sm"
-                    style={{ backgroundColor: ZEN, color: "white", borderColor: ZEN }}
-                    disabled={uploading || !selectedFile}
+                    className="btn btn-sm btn-secondary w-100"
+                    disabled={!selectedFile || uploading}
                     data-testid="upload-btn"
                   >
-                    {uploading ? "Uploading..." : "Upload"}
+                    {uploading ? "Uploading..." : "Upload Attachment"}
                   </button>
                 </form>
-              ) : (
-                <div className="alert alert-warning py-2 small mb-0 mt-2" data-testid="max-attach-warning">
-                  Maximum attachment limit (5) reached. Remove one to add more.
-                </div>
               )}
             </div>
           </div>

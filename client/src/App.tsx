@@ -126,8 +126,14 @@ export default function App() {
       {view === "DETAIL" && selectedTicketId && (
         <TicketDetail 
           ticketId={selectedTicketId} 
-          requesterId={user.id}
-          onBack={() => setView("LIST")}
+          currentUser={user}
+          onBack={() => {
+            if (user.role === "IT_STAFF" || user.role === "ADMINISTRATOR") {
+              setView("STAFF_QUEUE");
+            } else {
+              setView("LIST");
+            }
+          }}
         />
       )}
     </div>

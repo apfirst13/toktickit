@@ -5,7 +5,6 @@ import App from "../../src/App.js";
 describe("App", () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem('token', 'header.eyJ1c2VySWQiOjEsImZ1bGxOYW1lIjoiQWxpY2UgKGFsaWNlQHRlc3QuY29tKSIsInJvbGUiOiJSRVFVRVNURVIifQ==.sig');
     vi.restoreAllMocks();
   });
 
@@ -50,7 +49,7 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByTestId("fetch-error")).toHaveTextContent("Failed to load reference data.");
+      expect(screen.getByTestId("error-message")).toHaveTextContent("Failed to fetch requesters");
     });
   });
 });

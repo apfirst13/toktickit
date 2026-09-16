@@ -32,7 +32,7 @@ interface CreateTicketProps {
  * @param requesterName - Optional name of the requester to display
  * @param onSuccess - Optional callback invoked when ticket is successfully created, receives the ticket number
  */
-export function CreateTicket({ requesterName, onSuccess }: CreateTicketProps) {
+export function CreateTicket({ requesterId, requesterName, onSuccess }: CreateTicketProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [systems, setSystems] = useState<RelatedSystem[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
@@ -108,8 +108,8 @@ export function CreateTicket({ requesterName, onSuccess }: CreateTicketProps) {
     try {
       const res = await fetch("/api/tickets", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token") || ""}` },
-        body: JSON.stringify({ summary, description, categoryId: Number(categoryId), systemId: Number(systemId), requestedPriority }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ summary, description, categoryId: Number(categoryId), systemId: Number(systemId), requestedPriority, requesterId }),
       });
 
       if (res.status === 201) {

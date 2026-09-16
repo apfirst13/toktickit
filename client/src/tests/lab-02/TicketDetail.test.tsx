@@ -13,6 +13,7 @@ const TICKET_DATA = {
   relatedSystem: { name: "AV System" },
   createdAt: new Date().toISOString(),
   attachments: [],
+  requesterUserId: 1,
 };
 
 const mockOnBack = vi.fn();
@@ -31,7 +32,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve(TICKET_DATA),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     expect(screen.getByTestId("detail-loading")).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByTestId("ticket-detail-view")).toBeInTheDocument());
@@ -49,7 +50,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve({ error: "Forbidden" }),
     });
 
-    render(<TicketDetail ticketId={99} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={99} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("detail-error")).toBeInTheDocument());
     expect(screen.getByTestId("detail-error")).toHaveTextContent("Access denied.");
   });
@@ -62,7 +63,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve({ ...TICKET_DATA, attachments: [] }),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("no-attachments")).toBeInTheDocument());
     expect(screen.getByTestId("upload-form")).toBeInTheDocument();
   });
@@ -78,7 +79,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve({ ...TICKET_DATA, attachments }),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("attachment-list")).toBeInTheDocument());
 
     expect(screen.getByTestId("attachment-item-10")).toBeInTheDocument();
@@ -102,7 +103,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve({ ...TICKET_DATA, attachments }),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("max-attach-warning")).toBeInTheDocument());
     expect(screen.queryByTestId("upload-form")).not.toBeInTheDocument();
   });
@@ -115,7 +116,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve(TICKET_DATA),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("upload-form")).toBeInTheDocument());
 
     const fileInput = screen.getByTestId("file-input");
@@ -132,7 +133,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve(TICKET_DATA),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("upload-form")).toBeInTheDocument());
 
     const fileInput = screen.getByTestId("file-input");
@@ -162,7 +163,7 @@ describe("TicketDetail Component", () => {
       });
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("upload-form")).toBeInTheDocument());
 
     const fileInput = screen.getByTestId("file-input");
@@ -184,7 +185,7 @@ describe("TicketDetail Component", () => {
       json: () => Promise.resolve(TICKET_DATA),
     });
 
-    render(<TicketDetail ticketId={1} requesterId={1} onBack={mockOnBack} />);
+    render(<TicketDetail ticketId={1} currentUser={{ id: 1, role: "REQUESTER", fullName: "Req User" }} onBack={mockOnBack} />);
     await waitFor(() => expect(screen.getByTestId("back-btn")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("back-btn"));
     expect(mockOnBack).toHaveBeenCalledOnce();

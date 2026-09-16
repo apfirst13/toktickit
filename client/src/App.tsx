@@ -1,56 +1,61 @@
-import { useState } from "react";
-import { DevelopmentRequesterSelection } from "./components/DevelopmentRequesterSelection";
+import { useState, useEffect } from "react";
 import { CreateTicket } from "./components/CreateTicket";
 import { MyTickets } from "./components/MyTickets";
 import { TicketDetail } from "./components/TicketDetail";
+import { StaffTicketQueue } from "./components/StaffTicketQueue";
 
-interface Requester {
+interface User {
   id: number;
-  name: string;
+  fullName: string;
+  role: string;
 }
 
-type ViewState = "CREATE" | "LIST" | "DETAIL";
+type ViewState = "CREATE" | "LIST" | "DETAIL" | "STAFF_QUEUE";
 
-/**
- * Main application component that manages requester selection and ticket creation/management workflow.
- */
-function App() {
-  const [requester, setRequester] = useState<Requester | null>(() => {
-    const id = localStorage.getItem("dev_requester_id");
-    const name = localStorage.getItem("dev_requester_name");
-    return id ? { id: Number(id), name: name || "Unknown" } : null;
-  });
-
+export default function App() {
+  const [user, setUser] = useState<User | null>(null);
   const [view, setView] = useState<ViewState>("CREATE");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
-  function handleRequesterSelected(id: number, name: string) {
-    setRequester({ id, name });
-    setView("CREATE");
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser({
+          id: payload.userId,
+          fullName: payload.fullName || "User",
+          role: payload.role || "REQUESTER"
+        });
+      } catch (e) {
+        console.error("Invalid token", e);
+      }
+    }
+  }, []);
 
   function handleTicketCreated(ticketNumber: string) {
-    // We could auto-navigate to list, but staying on create is fine too, 
-    // the user can click "My Tickets" tab. For now, leave it on CREATE.
     console.log("Created", ticketNumber);
   }
 
-  if (!requester) {
+  if (!user) {
     return (
       <div className="container mt-5">
-        <DevelopmentRequesterSelection onSelect={handleRequesterSelected} />
+        <div className="alert alert-warning">
+          <h4>Authentication Required</h4>
+          <p>Please login to continue. (Issue 4 UI pending)</p>
+          <small className="text-muted">Set localStorage item 'token' with a valid JWT to simulate login.</small>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mt-3">
-      {/* Header & Tabs */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 border-bottom pb-3">
         <div>
           <h2 className="mb-0" style={{ color: "#006B3C" }}>TokTickIT</h2>
           <span className="text-muted small">
-            Acting as: <strong>{requester.name}</strong>
+            Logged in as: <strong>{user.fullName}</strong> ({user.role})
           </span>
         </div>
         
@@ -60,7 +65,6 @@ function App() {
               className={`btn btn-sm ${view === "CREATE" ? "btn-primary" : "btn-outline-primary"}`}
               style={view === "CREATE" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
               onClick={() => setView("CREATE")}
-              data-testid="nav-create"
             >
               Create Ticket
             </button>
@@ -68,33 +72,40 @@ function App() {
               className={`btn btn-sm ${view === "LIST" || view === "DETAIL" ? "btn-primary" : "btn-outline-primary"}`}
               style={(view === "LIST" || view === "DETAIL") ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
               onClick={() => setView("LIST")}
-              data-testid="nav-list"
             >
               My Tickets
             </button>
+            {(user.role === "IT_STAFF" || user.role === "ADMINISTRATOR") && (
+              <button 
+                className={`btn btn-sm ${view === "STAFF_QUEUE" ? "btn-primary" : "btn-outline-primary"}`}
+                style={view === "STAFF_QUEUE" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
+                onClick={() => setView("STAFF_QUEUE")}
+                data-testid="nav-staff-queue"
+              >
+                Staff Queue
+              </button>
+            )}
           </div>
           
           <button
-            className="btn btn-sm btn-outline-secondary ms-2"
+            className="btn btn-sm btn-outline-danger ms-2"
             onClick={() => {
-              localStorage.removeItem("dev_requester_id");
-              localStorage.removeItem("dev_requester_name");
-              setRequester(null);
+              localStorage.removeItem("token");
+              setUser(null);
             }}
           >
-            Switch User
+            Logout
           </button>
         </div>
       </div>
 
-      {/* Main Content Area */}
       {view === "CREATE" && (
-        <CreateTicket requesterId={requester.id} onSuccess={handleTicketCreated} />
+        <CreateTicket requesterId={user.id} onSuccess={handleTicketCreated} />
       )}
 
       {view === "LIST" && (
         <MyTickets 
-          requesterId={requester.id} 
+          requesterId={user.id} 
           onViewTicket={(id) => {
             setSelectedTicketId(id);
             setView("DETAIL");
@@ -102,15 +113,23 @@ function App() {
         />
       )}
 
+      {view === "STAFF_QUEUE" && (
+        <StaffTicketQueue
+          userId={user.id}
+          onViewTicket={(id) => {
+            setSelectedTicketId(id);
+            setView("DETAIL");
+          }}
+        />
+      )}
+
       {view === "DETAIL" && selectedTicketId && (
         <TicketDetail 
           ticketId={selectedTicketId} 
-          requesterId={requester.id}
+          requesterId={user.id}
           onBack={() => setView("LIST")}
         />
       )}
     </div>
   );
 }
-
-export default App;

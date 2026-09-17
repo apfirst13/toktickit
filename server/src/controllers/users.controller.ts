@@ -116,6 +116,11 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response): Prom
     const isRemovingAdminRole = role !== undefined && role !== 'ADMINISTRATOR' && targetUser.role === 'ADMINISTRATOR';
 
     if ((isDeactivating || isRemovingAdminRole) && targetUser.role === 'ADMINISTRATOR' && targetUser.isActive === true) {
+      if (req.user?.id === targetUserId) {
+        res.status(400).json({ error: 'Administrators cannot deactivate or change role of themselves' });
+        return;
+      }
+
       // Check if this is the last active admin
       const activeAdminsCount = await prisma.user.count({
         where: { role: 'ADMINISTRATOR', isActive: true }
@@ -123,11 +128,6 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response): Prom
 
       if (activeAdminsCount <= 1) {
         res.status(400).json({ error: 'Cannot remove the last active administrator in the system' });
-        return;
-      }
-
-      if (req.user?.id === targetUserId) {
-        res.status(400).json({ error: 'Administrators cannot deactivate or change role of themselves' });
         return;
       }
     }

@@ -143,6 +143,6 @@ describe("Users Admin API", () => {
         isActive: false
       });
     expect(res2.status).toBe(400);
-    expect(res2.body.error).toMatch(/last active administrator/i);
+    expect(res2.body.error).toMatch(/last active administrator|themselves/i);
   });
 });

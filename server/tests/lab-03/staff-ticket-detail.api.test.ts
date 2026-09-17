@@ -111,6 +111,10 @@ describe("IT Staff Ticket Detail API", () => {
       .send({ itPriority: "HIGH" });
     expect(res.status).toBe(200);
     expect(res.body.itPriority).toBe("HIGH");
+
+    const resInvalid = await request(app).patch(`/api/staff/tickets/${ticketId}`).set("Authorization", "Bearer " + staffToken)
+      .send({ itPriority: "INVALID_PRIORITY" });
+    expect(resInvalid.status).toBe(400);
   });
 
   it("should reject modification of requestedPriority (BR-11)", async () => {

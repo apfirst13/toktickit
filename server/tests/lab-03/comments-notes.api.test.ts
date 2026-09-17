@@ -38,6 +38,9 @@ describe('Comments and Notes API', () => {
   it('should return 403 without leaking data when requester accesses notes (SEC-03)', async () => {
     const res = await request(app).get(`/api/tickets/${ticketId}/notes`).set('Authorization', 'Bearer ' + requesterToken);
     expect(res.status).toBe(403);
+    
+    const resPost = await request(app).post(`/api/tickets/${ticketId}/notes`).set('Authorization', 'Bearer ' + requesterToken).send({ content: 'Secret Note' });
+    expect(resPost.status).toBe(403);
   });
 
   it('should return 201 when IT staff creates an internal note (API-08)', async () => {

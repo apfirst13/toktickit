@@ -51,7 +51,7 @@ test.describe('Visual Inspection and Screenshots (VIS-01)', () => {
 
         await expect(page.getByTestId('must-change-password-alert')).toBeVisible();
         await page.waitForTimeout(500); // allow styles to settle
-        await page.screenshot({ path: `e2e/screenshots/lab-03/${vp.name}-01-auth-alert.png`, fullPage: true });
+        await page.screenshot({ path: `artifacts/lab-03/screenshots/${vp.name}-01-auth-alert.png`, fullPage: true });
       });
 
       test(`Capture Staff Queue - ${vp.name}`, async ({ page, request }) => {
@@ -61,7 +61,7 @@ test.describe('Visual Inspection and Screenshots (VIS-01)', () => {
         await expect(page.locator('text=IT Staff Ticket Queue')).toBeVisible();
         
         await page.waitForTimeout(500);
-        await page.screenshot({ path: `e2e/screenshots/lab-03/${vp.name}-02-staff-queue.png`, fullPage: true });
+        await page.screenshot({ path: `artifacts/lab-03/screenshots/${vp.name}-02-staff-queue.png`, fullPage: true });
       });
 
       test(`Capture Staff Detail - ${vp.name}`, async ({ page, request }) => {
@@ -83,7 +83,7 @@ test.describe('Visual Inspection and Screenshots (VIS-01)', () => {
 
         await expect(page.getByTestId('detail-number')).toBeVisible();
         await page.waitForTimeout(500);
-        await page.screenshot({ path: `e2e/screenshots/lab-03/${vp.name}-03-staff-detail.png`, fullPage: true });
+        await page.screenshot({ path: `artifacts/lab-03/screenshots/${vp.name}-03-staff-detail.png`, fullPage: true });
       });
 
       test(`Capture Admin User Management - ${vp.name}`, async ({ page, request }) => {
@@ -93,7 +93,7 @@ test.describe('Visual Inspection and Screenshots (VIS-01)', () => {
         await expect(page.locator('text=User Management')).toBeVisible();
         
         await page.waitForTimeout(500);
-        await page.screenshot({ path: `e2e/screenshots/lab-03/${vp.name}-04-admin-users.png`, fullPage: true });
+        await page.screenshot({ path: `artifacts/lab-03/screenshots/${vp.name}-04-admin-users.png`, fullPage: true });
       });
     });
   }

@@ -73,7 +73,7 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 };
 
 function priorityBadge(priority: string) {
-  const map: Record<string, string> = { HIGH: "danger", MEDIUM: "warning", LOW: "success" };
+  const map: Record<string, string> = { URGENT: "danger", HIGH: "danger", MEDIUM: "warning", LOW: "success" };
   return map[priority?.toUpperCase()] ?? "secondary";
 }
 
@@ -527,6 +527,7 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
                     <option value="LOW">LOW</option>
                     <option value="MEDIUM">MEDIUM</option>
                     <option value="HIGH">HIGH</option>
+                    <option value="URGENT">URGENT</option>
                   </select>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">

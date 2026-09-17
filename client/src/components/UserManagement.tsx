@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 interface User {
   id: number;
   email: string;
@@ -19,6 +28,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
 
   // Filters
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -44,7 +54,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (search) params.append("search", search);
+      if (debouncedSearch) params.append("search", debouncedSearch);
       if (roleFilter) params.append("role", roleFilter);
       if (statusFilter) params.append("isActive", statusFilter);
 
@@ -75,7 +85,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
       setError("You do not have permission to view this page.");
       setLoading(false);
     }
-  }, [search, roleFilter, statusFilter, currentUser.role]);
+  }, [debouncedSearch, roleFilter, statusFilter, currentUser.role]);
 
   const openCreateModal = () => {
     setModalMode("CREATE");

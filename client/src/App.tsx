@@ -9,6 +9,7 @@ interface User {
   id: number;
   fullName: string;
   role: string;
+  mustChangePassword?: boolean;
 }
 
 type ViewState = "CREATE" | "LIST" | "DETAIL" | "STAFF_QUEUE" | "USERS";
@@ -26,7 +27,8 @@ export default function App() {
         setUser({
           id: payload.userId,
           fullName: payload.fullName || "User",
-          role: payload.role || "REQUESTER"
+          role: payload.role || "REQUESTER",
+          mustChangePassword: !!payload.mustChangePassword
         });
       } catch (e) {
         console.error("Invalid token", e);
@@ -45,6 +47,20 @@ export default function App() {
           <h4>Authentication Required</h4>
           <p>Please login to continue. (Issue 4 UI pending)</p>
           <small className="text-muted">Set localStorage item 'token' with a valid JWT to simulate login.</small>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.mustChangePassword) {
+    return (
+      <div className="container mt-5">
+        <div className="alert alert-danger" data-testid="must-change-password-alert">
+          <h4>Security Alert</h4>
+          <p>You must change your temporary password before accessing the system.</p>
+          <small className="text-muted">(Password change UI is pending implementation)</small>
+          <br/>
+          <button className="btn btn-outline-danger mt-3" onClick={() => { localStorage.removeItem("token"); setUser(null); }}>Logout</button>
         </div>
       </div>
     );

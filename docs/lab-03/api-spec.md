@@ -52,12 +52,11 @@
 - **Response 403:** Forbidden for Requesters.
 
 ### `GET /api/tickets/:id`
-- **Role:** `REQUESTER` (Owner only), `IT_STAFF`, `ADMINISTRATOR`
+- **Role:** All (Requesters can only view their own tickets, Staff/Admins can view any ticket).
 - **Headers:** Authorization Bearer token / Cookie
 - **Response 200:** Ticket detail object including attachments and comments.
 - **Response 401:** Unauthorized.
-- **Response 403:** Forbidden if Requester does not own the ticket.
-- **Response 404:** Ticket not found.
+- **Response 404:** Ticket not found (Also returned if Requester does not own the ticket to prevent existence leak).
 
 ### `PATCH /api/staff/tickets/:id`
 - **Role:** `IT_STAFF`, `ADMINISTRATOR`

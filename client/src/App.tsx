@@ -1,7 +1,8 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { CreateTicket } from "./components/CreateTicket";
 import { MyTickets } from "./components/MyTickets";
 import { TicketDetail } from "./components/TicketDetail";
+import { UserManagement } from "./components/UserManagement";
 
 interface User {
   id: number;
@@ -9,7 +10,7 @@ interface User {
   role: string;
 }
 
-type ViewState = "CREATE" | "LIST" | "DETAIL";
+type ViewState = "CREATE" | "LIST" | "DETAIL" | "USERS";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -74,6 +75,16 @@ export default function App() {
             >
               My Tickets
             </button>
+            {user.role === "ADMINISTRATOR" && (
+              <button 
+                className={`btn btn-sm ${view === "USERS" ? "btn-primary" : "btn-outline-primary"}`}
+                style={view === "USERS" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
+                onClick={() => setView("USERS")}
+                data-testid="nav-users"
+              >
+                Users
+              </button>
+            )}
           </div>
           
           <button
@@ -102,11 +113,15 @@ export default function App() {
         />
       )}
 
+      {view === "USERS" && (
+        <UserManagement currentUser={user} />
+      )}
+
       {view === "DETAIL" && selectedTicketId && (
         <TicketDetail 
           ticketId={selectedTicketId} 
           requesterId={user.id}
-          onBack={() => setView("LIST")}
+          onBack={() => setView("LIST")} 
         />
       )}
     </div>

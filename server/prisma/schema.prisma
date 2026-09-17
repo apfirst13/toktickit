@@ -71,6 +71,7 @@ model Ticket {
   requestedPriority String       
   itPriority        Priority?    
   currentStatus     TicketStatus @default(NEW)
+  appearsResolved   Boolean      @default(false)
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 

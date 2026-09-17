@@ -24,12 +24,25 @@
 
 ## 2. IT Staff Queue & Ticket Operations
 ### `GET /api/staff/queue`
-- **Role:** `IT_STAFF`, `ADMINISTRATOR`
+- **Role:** `IT_STAFF`, `ADMINISTRATOR` only. (Strictly blocks `REQUESTER` role).
 - **Headers:** Authorization Bearer token / Cookie
-- **Query:** `page`, `limit`, `search`, `category`, `status`, `priority`, `sortBy`, `sortOrder`
-- **Response 200:** `{ "data": [...], "meta": { "total": 87, "page": 1, "totalPages": 9 } }`
-- **Response 401:** Unauthorized.
-- **Response 403:** Forbidden for Requesters.
+- **Query Parameters:**
+  - `page` (number, default: 1): Page number. Invalid non-numeric values fallback to default.
+  - `limit` (number, default: 10, max: 50): Page size. Invalid or excessive values fallback to default.
+  - `search` (string): Keyword matching `ticketNumber` or `summary`.
+  - `category`, `status`, `requestedPriority`, `itPriority` (string): Exact match filters.
+  - `assignedTo` (string): ID of staff, or `unassigned`.
+  - `sortBy` (string, default: `createdAt`): Allowed whitelist (`createdAt`, `requestedPriority`, `itPriority`, `currentStatus`). Invalid values fallback to default.
+  - `sortOrder` (string, default: `desc`): `asc` or `desc`.
+- **Response 200:**
+  ```json
+  {
+    "data": [...],
+    "pagination": { "total": 87, "page": 1, "pageSize": 10, "totalPages": 9 }
+  }
+  ```
+- **Response 401:** Unauthorized (No valid token provided).
+- **Response 403:** Forbidden (If user is a Requester, since this endpoint does not apply ownership constraints, it must return 403, not 404).
 
 ### `PATCH /api/staff/tickets/:id`
 - **Role:** `IT_STAFF`, `ADMINISTRATOR`

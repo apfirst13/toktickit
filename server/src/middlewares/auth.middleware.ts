@@ -58,3 +58,13 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
     res.status(401).json({ error: 'Unauthorized' });
   }
 };
+
+export const requireRole = (roles: string[]) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+      return;
+    }
+    next();
+  };
+};

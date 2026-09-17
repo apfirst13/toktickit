@@ -335,8 +335,8 @@ export const setAppearsResolved = async (req: AuthenticatedRequest, res: Respons
 };
 export const getInternalNotes = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    if (req.user!.role === 'REQUESTER') {
-      return res.status(403).json({ error: 'Forbidden: Requesters cannot access internal notes' });
+    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
+      return res.status(403).json({ error: 'Forbidden: Only IT Staff and Administrators can access internal notes' });
     }
     const ticketId = Number(req.params.id);
     const notes = await prisma.internalNote.findMany({
@@ -352,7 +352,7 @@ export const getInternalNotes = async (req: AuthenticatedRequest, res: Response)
 
 export const addInternalNote = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    if (req.user!.role === 'REQUESTER') {
+    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const ticketId = Number(req.params.id);

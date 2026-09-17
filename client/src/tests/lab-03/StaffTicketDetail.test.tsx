@@ -86,6 +86,23 @@ describe('StaffTicketDetail Component', () => {
 
     const saveBtn = screen.getByText('Save Changes');
     expect(saveBtn).toBeDisabled(); // disabled because no changes yet
+
+    const statusSelect = screen.getByTestId('status-select');
+    fireEvent.change(statusSelect, { target: { value: 'OPEN' } });
+
+    expect(saveBtn).not.toBeDisabled();
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/staff/tickets/100', expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({
+          itPriority: 'LOW',
+          assignedStaffId: null,
+          status: 'OPEN'
+        })
+      }));
+    });
   });
 
   it('should not render staff controls for REQUESTER', async () => {

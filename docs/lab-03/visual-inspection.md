@@ -30,7 +30,7 @@ Automated visual inspection using Playwright capturing 3 viewport sizes for 4 cr
 - [x] **Mobile:** Inputs in modal span full width, table displays without breaking parent container.
 
 ## Screenshot Directory
-Screenshots have been generated and committed to the repository at `e2e/screenshots/lab-03/`.
+Screenshots have been generated and committed to the repository at `artifacts/lab-03/screenshots/`.
 
 **Status:** PASS 
 **Verified By:** E2E Automated Visual Script (`e2e/lab-03/responsive.spec.ts`)

@@ -368,15 +368,15 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
                 </div>
               </div>
 
-              {/* ── Mobile / Tablet Cards (<992px) ── */}
-              <div className="d-lg-none" data-testid="queue-cards">
+              {/* 📱 Mobile / Tablet Cards (<992px) 📱 */}
+              <div className="d-lg-none row" data-testid="queue-cards">
                 {tickets.map((t) => (
-                  <div
-                    key={t.id}
-                    className="card mb-3 shadow-sm"
-                    style={{ borderLeft: `4px solid ${ZEN}` }}
-                    data-testid={`queue-card-${t.id}`}
-                  >
+                  <div key={t.id} className="col-12 col-md-6 mb-3">
+                    <div
+                      className="card shadow-sm h-100"
+                      style={{ borderLeft: `4px solid ${ZEN}` }}
+                      data-testid={`queue-card-${t.id}`}
+                    >
                     <div className="card-body py-3">
                       <div className="d-flex justify-content-between align-items-start mb-2">
                         <div>
@@ -411,6 +411,7 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
                       </div>
                     </div>
                   </div>
+                </div>
                 ))}
               </div>
 

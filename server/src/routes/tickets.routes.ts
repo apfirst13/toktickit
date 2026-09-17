@@ -8,7 +8,9 @@ import {
   downloadAttachment,
   removeAttachment,
   addPublicComment,
-  setAppearsResolved
+  setAppearsResolved,
+  getInternalNotes,
+  addInternalNote
 } from '../controllers/tickets.controller.js';
 import multer from 'multer';
 import crypto from 'crypto';
@@ -63,5 +65,7 @@ router.delete('/:id/attachments/:attachmentId', removeAttachment);
 
 router.post('/:id/comments', addPublicComment);
 router.post('/:id/appears-resolved', setAppearsResolved);
+router.get('/:id/notes', getInternalNotes);
+router.post('/:id/notes', addInternalNote);
 
 export default router;

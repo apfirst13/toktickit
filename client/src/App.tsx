@@ -1,7 +1,8 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { CreateTicket } from "./components/CreateTicket";
 import { MyTickets } from "./components/MyTickets";
 import { TicketDetail } from "./components/TicketDetail";
+import { StaffTicketQueue } from "./components/StaffTicketQueue";
 
 interface User {
   id: number;
@@ -9,7 +10,7 @@ interface User {
   role: string;
 }
 
-type ViewState = "CREATE" | "LIST" | "DETAIL";
+type ViewState = "CREATE" | "LIST" | "DETAIL" | "STAFF_QUEUE";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -74,6 +75,16 @@ export default function App() {
             >
               My Tickets
             </button>
+            {(user.role === "IT_STAFF" || user.role === "ADMINISTRATOR") && (
+              <button 
+                className={`btn btn-sm ${view === "STAFF_QUEUE" ? "btn-primary" : "btn-outline-primary"}`}
+                style={view === "STAFF_QUEUE" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
+                onClick={() => setView("STAFF_QUEUE")}
+                data-testid="nav-staff-queue"
+              >
+                Staff Queue
+              </button>
+            )}
           </div>
           
           <button
@@ -102,11 +113,27 @@ export default function App() {
         />
       )}
 
+      {view === "STAFF_QUEUE" && (
+        <StaffTicketQueue
+          userId={user.id}
+          onViewTicket={(id) => {
+            setSelectedTicketId(id);
+            setView("DETAIL");
+          }}
+        />
+      )}
+
       {view === "DETAIL" && selectedTicketId && (
         <TicketDetail 
           ticketId={selectedTicketId} 
-          requesterId={user.id}
-          onBack={() => setView("LIST")}
+          currentUser={user}
+          onBack={() => {
+            if (user.role === "IT_STAFF" || user.role === "ADMINISTRATOR") {
+              setView("STAFF_QUEUE");
+            } else {
+              setView("LIST");
+            }
+          }}
         />
       )}
     </div>

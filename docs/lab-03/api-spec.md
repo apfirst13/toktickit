@@ -44,12 +44,26 @@
 - **Response 401:** Unauthorized (No valid token provided).
 - **Response 403:** Forbidden (If user is a Requester, since this endpoint does not apply ownership constraints, it must return 403, not 404).
 
+### `GET /api/staff/users`
+- **Role:** `IT_STAFF`, `ADMINISTRATOR`
+- **Headers:** Authorization Bearer token / Cookie
+- **Response 200:** Array of active IT Staff and Administrators (`{ "id", "fullName", "role" }`) to be used for ticket assignment dropdowns.
+- **Response 401:** Unauthorized.
+- **Response 403:** Forbidden for Requesters.
+
+### `GET /api/tickets/:id`
+- **Role:** All (Requesters can only view their own tickets, Staff/Admins can view any ticket).
+- **Headers:** Authorization Bearer token / Cookie
+- **Response 200:** Ticket detail object including attachments and comments.
+- **Response 401:** Unauthorized.
+- **Response 404:** Ticket not found (Also returned if Requester does not own the ticket to prevent existence leak).
+
 ### `PATCH /api/staff/tickets/:id`
 - **Role:** `IT_STAFF`, `ADMINISTRATOR`
 - **Headers:** Authorization Bearer token / Cookie
 - **Body:** `{ "assignedStaffId": 2, "itPriority": "HIGH", "status": "IN_PROGRESS" }`
 - **Response 200:** Updated ticket object.
-- **Response 400:** Invalid status transition per lifecycle rules.
+- **Response 400:** Invalid status transition per lifecycle rules, or invalid assignment (inactive user/wrong role).
 - **Response 401:** Unauthorized.
 - **Response 403:** Forbidden for Requesters.
 

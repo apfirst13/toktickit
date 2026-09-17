@@ -72,7 +72,9 @@ export const getTicketById = async (req: AuthenticatedRequest, res: Response): P
       include: {
         category: { select: { name: true } },
         relatedSystem: { select: { name: true } },
-        attachments: true
+        attachments: true,
+        requesterUser: { select: { fullName: true } },
+        assignedStaff: { select: { fullName: true } }
       }
     });
 
@@ -80,7 +82,7 @@ export const getTicketById = async (req: AuthenticatedRequest, res: Response): P
       return res.status(404).json({ error: "Ticket not found" });
     }
 
-    if (ticket.requesterUserId !== requesterId) {
+    if (ticket.requesterUserId !== requesterId && !['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
       return res.status(404).json({ error: "Ticket not found" });
     }
 
@@ -329,5 +331,44 @@ export const setAppearsResolved = async (req: AuthenticatedRequest, res: Respons
     return res.status(200).json(updated);
   } catch (error) {
     return res.status(500).json({ error: "Failed to set appears resolved" });
+  }
+};
+export const getInternalNotes = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
+      return res.status(403).json({ error: 'Forbidden: Only IT Staff and Administrators can access internal notes' });
+    }
+    const ticketId = Number(req.params.id);
+    const notes = await prisma.internalNote.findMany({
+      where: { ticketId },
+      orderBy: { createdAt: 'asc' },
+      include: { author: { select: { fullName: true, role: true } } }
+    });
+    return res.status(200).json(notes);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch notes' });
+  }
+};
+
+export const addInternalNote = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const ticketId = Number(req.params.id);
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: 'Content required' });
+
+    const note = await prisma.internalNote.create({
+      data: {
+        content,
+        ticketId,
+        authorId: req.user!.id
+      },
+      include: { author: { select: { fullName: true, role: true } } }
+    });
+    return res.status(201).json(note);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to create note' });
   }
 };

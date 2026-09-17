@@ -82,3 +82,90 @@ export const getQueue = async (req: AuthenticatedRequest, res: Response): Promis
     res.status(500).json({ error: 'Failed to fetch queue' });
   }
 };
+export const getActiveStaff = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        role: { in: ['IT_STAFF', 'ADMINISTRATOR'] },
+        isActive: true
+      },
+      select: {
+        id: true,
+        fullName: true,
+        role: true
+      }
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch active staff' });
+  }
+};
+
+export const updateTicket = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+    const ticketId = Number(req.params.id);
+    const { assignedStaffId, itPriority, status } = req.body;
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    const updates: any = {};
+
+    if (assignedStaffId !== undefined) {
+      if (assignedStaffId === null) {
+        updates.assignedStaffId = null;
+      } else {
+        const staffUser = await prisma.user.findUnique({ where: { id: Number(assignedStaffId) } });
+        if (!staffUser || !staffUser.isActive || !['IT_STAFF', 'ADMINISTRATOR'].includes(staffUser.role)) {
+          return res.status(400).json({ error: 'Invalid assignment: User must be active IT_STAFF or ADMINISTRATOR' });
+        }
+        updates.assignedStaffId = Number(assignedStaffId);
+      }
+    }
+
+    if (itPriority) {
+      if (!['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(itPriority)) {
+        return res.status(400).json({ error: 'Invalid IT Priority' });
+      }
+      updates.itPriority = itPriority;
+    }
+
+    if (status && status !== ticket.currentStatus) {
+      const current = ticket.currentStatus;
+      const target = status;
+      
+      const allowedTransitions: Record<string, string[]> = {
+        NEW: ['OPEN', 'CANCELLED'],
+        OPEN: ['IN_PROGRESS', 'WAITING_FOR_REQUESTER', 'CANCELLED'],
+        IN_PROGRESS: ['WAITING_FOR_REQUESTER', 'RESOLVED', 'CANCELLED'],
+        WAITING_FOR_REQUESTER: ['IN_PROGRESS', 'RESOLVED'],
+        RESOLVED: ['CLOSED', 'REOPENED'],
+        REOPENED: ['IN_PROGRESS'],
+        CLOSED: [],
+        CANCELLED: []
+      };
+
+      const allowed = allowedTransitions[current] || [];
+      if (!allowed.includes(target)) {
+        return res.status(400).json({ error: `Invalid status transition from ${current} to ${target}` });
+      }
+      updates.currentStatus = target;
+    }
+
+    const updatedTicket = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: updates
+    });
+
+    return res.status(200).json(updatedTicket);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update ticket' });
+  }
+};

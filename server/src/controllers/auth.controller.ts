@@ -44,7 +44,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, role: user.role },
+      { 
+        userId: user.id, 
+        role: user.role,
+        fullName: user.fullName,
+        mustChangePassword: user.mustChangePassword
+      },
       JWT_SECRET,
       { expiresIn: '24h' }
     );

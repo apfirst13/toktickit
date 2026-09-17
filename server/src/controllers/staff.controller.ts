@@ -130,6 +130,9 @@ export const updateTicket = async (req: AuthenticatedRequest, res: Response): Pr
     }
 
     if (itPriority) {
+      if (!['LOW', 'MEDIUM', 'HIGH'].includes(itPriority)) {
+        return res.status(400).json({ error: 'Invalid IT Priority' });
+      }
       updates.itPriority = itPriority;
     }
 

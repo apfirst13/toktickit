@@ -1,5 +1,0 @@
-import { describe, it } from 'vitest';
-
-describe('Login Component', () => {
-  it.todo('should render and submit');
-});

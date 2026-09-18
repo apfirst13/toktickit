@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 3 Submission Report - Aphiwat Panthathanaphat</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #006B3C; font-size: 1.5em; margin-bottom: 5px; }
+        h2.subtitle { color: #555; font-size: 1.2em; margin-top: 0; border-bottom: 2px solid #006B3C; padding-bottom: 10px; }
+        h2.part { color: #004d2b; margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        .placeholder { border: 2px dashed #dc3545; background-color: #f8d7da; color: #721c24; padding: 20px; text-align: center; margin: 15px 0; border-radius: 5px; font-weight: bold; }
+        .screenshot-container { margin: 15px 0; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #f9f9f9; text-align: center; }
+        .screenshot-container img { max-width: 100%; height: auto; border: 1px solid #ccc; }
+        .caption { font-style: italic; color: #555; margin-top: 10px; display: block; }
+        a { color: #006B3C; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        ul { padding-left: 20px; }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .instruction { background-color: #fff3cd; color: #856404; padding: 10px; border-left: 4px solid #ffeeba; margin-bottom: 15px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <h1>CPE 334 — Introduction to Software Engineering in the Age of AI Agents</h1>
+    <h2 class="subtitle">Lab 3 — TokTickIT Users, Roles, IT Staff Ticketing, and Admin Screens</h2>
+    <p>Semester 1/2026 · Sections 1, 2, HS, 31, 32</p>
+    <p><strong>Student Name:</strong> Aphiwat Panthathanaphat &nbsp;&nbsp;&nbsp; <strong>Student ID:</strong> 67070507209</p>
+    <p><strong>Repository:</strong> <a href="https://github.com/apfirst13/toktickit">https://github.com/apfirst13/toktickit</a></p>
+
+    <!-- PART 1 -->
+    <h2 class="part">Answer Part 1: Git Use with Engineering Workflow (10 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> แคปรูปหน้าจอ Git Graph / หน้า GitHub Project ที่ทุก Issue อยู่ช่อง Done / เนื้อหาไฟล์ Reviewer, README, .gitignore / และรูป File Tree
+    </div>
+    
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 Commit history / branch graph แสดงการ Merge เข้า lab3-staging และ main]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 GitHub Project board — all Issues Done]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 หน้าจอที่ Render ไฟล์ reviewer.md แสดงการ Approve และคอมเมนต์]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 หน้าจอ README.md และ .gitignore]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 Repository directory structure (tree view จากใน VSCode)]
+    </div>
+
+
+    <!-- PART 2 -->
+    <h2 class="part">Answer Part 2: Spec DD (5 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ลิงก์ไปยัง <code>specification.md</code> / ภาพหน้าจอของไฟล์ Spec / ภาพประวัติ Commit ที่ยืนยันว่าเขียน Spec ก่อนโค้ดจริง
+    </div>
+    
+    <ul>
+        <li><strong>Link:</strong> <a href="https://github.com/apfirst13/toktickit/blob/main/docs/lab-03/specification.md">docs/lab-03/specification.md</a></li>
+    </ul>
+    
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 ภาพแคปหน้าจอเนื้อหา rendered specification.md (FR, BR, AC)]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 ภาพแคปหน้าจอ Commit timestamps พิสูจน์ว่าไฟล์ Spec มีมาก่อน Implementation PRs]
+    </div>
+
+
+    <!-- PART 3 -->
+    <h2 class="part">Answer Part 3: Test DD and Traceability (10 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ลิงก์ <code>tests.md</code> / ตาราง Traceability / รัน <code>npm test</code> และ <code>npx playwright test</code> แล้วแคปผลลัพธ์ว่า Pass 100%
+    </div>
+    
+    <ul>
+        <li><strong>Link:</strong> <a href="https://github.com/apfirst13/toktickit/blob/main/docs/lab-03/tests.md">docs/lab-03/tests.md</a></li>
+    </ul>
+
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 ตาราง Traceability จาก tests.md]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 Full test run output — server suite]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 Full test run output — client suite]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 E2E test run output (รัน npx playwright test ทิ้งไว้แล้วแคป console)]
+    </div>
+
+
+    <!-- PART 4 -->
+    <h2 class="part">Answer Part 4: AI Use with Reflection (5 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ภาพหน้าจอไฟล์ <code>ai-use.md</code> ที่มี 6-10 Prompts และเขียน Reflection สั้นๆ (ไฟล์นี้ผมเตรียมให้แล้ว แค่เปิดแล้วแคปมาแปะ)
+    </div>
+    
+    <ul>
+        <li><strong>Link:</strong> <a href="https://github.com/apfirst13/toktickit/blob/main/docs/lab-03/ai-use.md">docs/lab-03/ai-use.md</a></li>
+    </ul>
+
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 ภาพแคปหน้าจอเนื้อหา rendered ai-use.md + prompt 6-10 อัน + reflection]
+    </div>
+
+
+    <!-- PART 5 -->
+    <h2 class="part">Answer Part 5: Working Login and Password Change UI (5 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ผมถ่ายภาพ Login, Inactive, Auth Shell ให้แล้ว!
+    </div>
+
+    <div class="grid-container">
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/login-empty.png" alt="Login Empty">
+            <span class="caption">🖼 Login screen — empty</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/login-invalid.png" alt="Login Invalid">
+            <span class="caption">🖼 Login screen — invalid</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/login-inactive.png" alt="Inactive Account">
+            <span class="caption">🖼 Inactive account error</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/desktop-01-auth-alert.png" alt="Mandatory Password Change">
+            <span class="caption">🖼 Mandatory password change screen</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/auth-shell-role.png" alt="Auth Shell">
+            <span class="caption">🖼 Authenticated shell showing user + role</span>
+        </div>
+    </div>
+
+    <!-- PART 6 -->
+    <h2 class="part">Answer Part 6: Working IT Staff Ticket Queue UI (5 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ผมใส่ภาพ Search, No Results, และ Responsive Table ให้ครบหมดแล้วครับ!
+    </div>
+
+    <div class="grid-container">
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/desktop-02-staff-queue.png" alt="Desktop Staff Queue">
+            <span class="caption">🖼 Queue — desktop table view with real data</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/tablet-02-staff-queue.png" alt="Tablet Staff Queue">
+            <span class="caption">🖼 Responsive — tablet and mobile card view</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/queue-search-filter.png" alt="Search and Filter">
+            <span class="caption">🖼 Search / filter / sort in action</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/queue-no-results.png" alt="No Results">
+            <span class="caption">🖼 Empty state and no-results state</span>
+        </div>
+    </div>
+
+    <!-- PART 7 -->
+    <h2 class="part">Answer Part 7: Working IT Staff Ticket Detail UI (10 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> สำหรับ API 403 ผมเว้นช่องไว้ให้คุณเอา Postman มาแคปแปะนะครับ (ส่วน Internal Note ใส่ให้แล้ว)
+    </div>
+
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 Ticket Detail — ownership / IT Priority / status controls]
+    </div>
+
+    <div class="screenshot-container">
+        <img src="./artifacts/lab-03/screenshots/desktop-03-staff-detail.png" alt="Desktop Staff Detail">
+        <span class="caption">🖼 Public Comments vs Internal Notes — visually distinct (Golden Tint)</span>
+    </div>
+
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 Attachments carried over from Lab 2]
+    </div>
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 API authorization evidence (curl / Postman screenshot showing 403/404 เมื่อแอบดู Note ของคนอื่น)]
+    </div>
+
+    <!-- PART 8 -->
+    <h2 class="part">Answer Part 8: Working Administrator User Management UI (5 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ภาพ User list, Validation Error, Guard Blocked (ใส่ให้ครบแล้ว!)
+    </div>
+
+    <div class="grid-container">
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/desktop-04-admin-users.png" alt="Desktop Admin Users">
+            <span class="caption">🖼 User list + search/filter</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/admin-create-validation.png" alt="Validation Errors">
+            <span class="caption">🖼 Create / Edit user form + validation errors</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/admin-self-deactivate-blocked.png" alt="Guard Blocked">
+            <span class="caption">🖼 Self-deactivation and last-admin guard blocked (Error Toast)</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/admin-forbidden.png" alt="Forbidden">
+            <span class="caption">🖼 Forbidden access — non-Administrator role</span>
+        </div>
+    </div>
+
+
+    <!-- PART 9 -->
+    <h2 class="part">Answer Part 9: Zen Green UI and Responsive Evidence (5 pts)</h2>
+    <div class="instruction">
+        <strong>สิ่งที่ต้องนำมาแปะ:</strong> ภาพหน้าจอ Render ไฟล์ <code>ui-spec.md</code> และกากบาท Visual Checklist (รูป 3 ขนาด Desktop, Tablet, Mobile ผมเอาใส่ให้ครบหมดแล้ว!)
+    </div>
+
+    <ul>
+        <li><strong>Link:</strong> <a href="https://github.com/apfirst13/toktickit/blob/main/docs/lab-03/ui-spec.md">docs/lab-03/ui-spec.md</a></li>
+    </ul>
+
+    <div class="placeholder">
+        [รอใส่รูป: 🖼 แปะเนื้อหา ui-spec.md + ตาราง checklist จาก visual-inspection.md ที่กากบาทครบทุกข้อ ที่นี่]
+    </div>
+
+    <h3>All major screens (Generated by E2E Script)</h3>
+    <div class="grid-container">
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/desktop-03-staff-detail.png" alt="Desktop">
+            <span class="caption">🖼 All major screens — Desktop (≥992px)</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/tablet-01-auth-alert.png" alt="Tablet">
+            <span class="caption">🖼 All major screens — Tablet (768–991px)</span>
+        </div>
+        <div class="screenshot-container">
+            <img src="./artifacts/lab-03/screenshots/mobile-04-admin-users.png" alt="Mobile">
+            <span class="caption">🖼 All major screens — Mobile (<768px)</span>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -56,16 +56,11 @@ export default function App() {
   }
 
   if (user.mustChangePassword) {
-    // If somehow a token with mustChangePassword leaks into this state without being handled by Login
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-danger" data-testid="must-change-password-alert">
-          <h4>Security Alert</h4>
-          <p>You must change your temporary password before accessing the system.</p>
-          <button className="btn btn-outline-danger mt-3" onClick={() => { localStorage.removeItem("token"); setUser(null); }}>Logout</button>
-        </div>
-      </div>
-    );
+    // Token contains mustChangePassword=true (e.g. page refresh).
+    // Redirect back to Login which handles the full change-password flow.
+    localStorage.removeItem("token");
+    setUser(null);
+    return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (

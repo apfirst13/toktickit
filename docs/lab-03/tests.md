@@ -43,6 +43,8 @@ The testing approach relies on layered automation covering 7 primary types:
 | **E2E-01** | E2E | FR-01, AC-01 | Full Auth Flow | Login, mandatory password change, logout | `e2e/lab-03/authentication.spec.ts` | PASS |
 | **E2E-02** | E2E | FR-05, AC-05 | Staff Flow | Staff reviews queue, filters, opens ticket, adds note | `e2e/lab-03/staff-ticket-flow.spec.ts` | PASS |
 | **E2E-03** | E2E | FR-08, AC-06 | Admin Flow | Admin creates user, handles duplicate email gracefully | `e2e/lab-03/user-administration.spec.ts` | PASS |
+| **E2E-04** | E2E | FR-08, AC-06 | Admin Role Guards | Admin last-active and self-deactivation blocks | `e2e/lab-03/capture-problem3.spec.ts` | PASS |
+| **E2E-05** | E2E | SEC-04 | Ticket Isolation | Safe failure UI for unauthorized ticket access | `e2e/lab-03/capture-problem4.spec.ts` | PASS |
 | **VIS-01** | Respons | FR-08 | Zen Green constraints & Responsive | Screens render perfectly at Desktop, Tablet, Mobile | `e2e/lab-03/responsive.spec.ts` | PASS |
 
 ## 3. Requirement/Rule Traceability Matrix
@@ -94,8 +96,8 @@ npx playwright test
 | Suite | Command | Tests | Pass | Fail | Skip | Status |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | Server (API/SEC/Integration) | `cd server && npx vitest run` | 56 | 56 | 0 | 0 | PASS |
-| Client (UI Component/Style) | `cd client && npx vitest run` | 32 | 32 | 0 | 0 | PASS |
-| E2E (Playwright) | `npx playwright test` | 27 | 22 | 0 | 5 | PASS |
+| Client (UI Component/Style) | `cd client && npx vitest run` | 39 | 39 | 0 | 0 | PASS |
+| E2E (Playwright) | `npx playwright test` | 33 | 28 | 0 | 5 | PASS |
 
 > *E2E note: 5 skipped tests are legacy Lab 2 specs (`full-integration`, `requester-selection`, `responsive_screenshots`) that are blocked by the new Lab 3 auth barriers. All Lab 3 E2E tests pass 100%.
 

@@ -37,17 +37,11 @@ test.describe('Visual Inspection and Screenshots (VIS-01)', () => {
           data: { email: uniqueEmail, fullName: 'Visual Test', role: 'REQUESTER', initialPassword: 'Password123!' }
         });
 
-        // Login as new user
-        const loginRes = await request.post('/api/auth/login', {
-          data: { email: uniqueEmail, password: 'Password123!' }
-        });
-        const userData = await loginRes.json();
-        
+        // Login as new user via UI to trigger the mandatory change password state
         await page.goto('/');
-        await page.evaluate((token) => {
-          localStorage.setItem('token', token);
-        }, userData.token);
-        await page.reload();
+        await page.fill('input[type="email"]', uniqueEmail);
+        await page.fill('input[type="password"]', 'Password123!');
+        await page.click('button[type="submit"]');
 
         await expect(page.getByTestId('must-change-password-alert')).toBeVisible();
         await page.waitForTimeout(500); // allow styles to settle

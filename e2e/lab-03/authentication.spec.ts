@@ -44,6 +44,9 @@ test.describe('Authentication Flow', () => {
         initialPassword: 'TempPassword1!'
       }
     });
+    if (!createRes.ok()) {
+      console.log(await createRes.text());
+    }
     expect(createRes.ok()).toBeTruthy();
 
     // 2. New user logs in via UI
@@ -55,11 +58,12 @@ test.describe('Authentication Flow', () => {
     // Verify blocked by Security Alert / Change Password Form
     const alert = page.getByTestId('must-change-password-alert');
     await expect(alert).toBeVisible();
-    await expect(page.locator('text=You must change your temporary password')).toBeVisible();
+    await expect(page.locator('text=You must set a new password')).toBeVisible();
 
     // 3. User changes password
-    await page.locator('label:has-text("New Password")').locator('..').locator('input').fill('NewStrongPassword1!');
-    await page.locator('button:has-text("Change Password")').click();
+    await page.getByTestId('new-password-input').fill('NewStrongP@ss1!');
+    await page.getByTestId('confirm-password-input').fill('NewStrongP@ss1!');
+    await page.getByTestId('change-password-submit').click();
 
     // Verify successfully logged in after changing password
     await expect(page.locator('text=Logged in as:')).toBeVisible();

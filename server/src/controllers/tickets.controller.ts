@@ -193,7 +193,7 @@ export const uploadAttachment = async (req: AuthenticatedRequest, res: Response)
       return res.status(404).json({ error: "Ticket not found" });
     }
 
-    if (ticket.requesterUserId !== requesterId) {
+    if (ticket.requesterUserId !== requesterId && !['IT_STAFF', 'ADMINISTRATOR'].includes(req.user.role)) {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: "Ticket not found" });
     }
@@ -237,7 +237,7 @@ export const downloadAttachment = async (req: AuthenticatedRequest, res: Respons
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
-    if (ticket.requesterUserId !== requesterId) {
+    if (ticket.requesterUserId !== requesterId && !['IT_STAFF', 'ADMINISTRATOR'].includes(req.user.role)) {
       return res.status(404).json({ error: "Ticket not found" });
     }
 
@@ -276,7 +276,7 @@ export const removeAttachment = async (req: AuthenticatedRequest, res: Response)
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
-    if (ticket.requesterUserId !== requesterId) {
+    if (ticket.requesterUserId !== requesterId && !['IT_STAFF', 'ADMINISTRATOR'].includes(req.user.role)) {
       return res.status(404).json({ error: "Ticket not found" });
     }
 

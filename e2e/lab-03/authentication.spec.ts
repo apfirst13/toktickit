@@ -2,22 +2,18 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
 
-  test('Valid credentials return session and identity (AC-01, FR-01)', async ({ page, request }) => {
-    // Simulate Login via API because UI is pending
-    const res = await request.post('/api/auth/login', {
-      data: { email: 'req1@toktickit.com', password: 'Password123!' }
-    });
-    
-    expect(res.ok()).toBeTruthy();
-    const data = await res.json();
-    expect(data.token).toBeDefined();
-
-    // Inject token to simulate logged in state
+  test('Valid credentials return session and identity (AC-01, FR-01)', async ({ page }) => {
+    // Start at the home page which should show Login
     await page.goto('/');
-    await page.evaluate((token) => {
-      localStorage.setItem('token', token);
-    }, data.token);
-    await page.reload();
+
+    await expect(page.locator('text=Authentication Required')).toBeVisible();
+
+    // Fill the real login form
+    await page.locator('label:has-text("Email")').locator('..').locator('input').fill('req1@toktickit.com');
+    await page.locator('label:has-text("Password")').locator('..').locator('input').fill('Password123!');
+    
+    // Submit
+    await page.locator('button:has-text("Login")').click();
 
     // Verify UI recognizes the user
     await expect(page.locator('text=Logged in as:')).toBeVisible();
@@ -31,7 +27,7 @@ test.describe('Authentication Flow', () => {
   });
 
   test('mustChangePassword=true blocks/redirects (AC-02, FR-02)', async ({ page, request }) => {
-    // 1. Admin creates a new user
+    // 1. Admin creates a new user via API for testing convenience
     const adminRes = await request.post('/api/auth/login', {
       data: { email: 'admin@toktickit.com', password: 'Password123!' }
     });
@@ -50,28 +46,27 @@ test.describe('Authentication Flow', () => {
     });
     expect(createRes.ok()).toBeTruthy();
 
-    // 2. New user logs in
-    const loginRes = await request.post('/api/auth/login', {
-      data: { email: uniqueEmail, password: 'TempPassword1!' }
-    });
-    expect(loginRes.ok()).toBeTruthy();
-    const userData = await loginRes.json();
-    expect(userData.user.mustChangePassword).toBe(true);
-
-    // 3. UI should block access
+    // 2. New user logs in via UI
     await page.goto('/');
-    await page.evaluate((token) => {
-      localStorage.setItem('token', token);
-    }, userData.token);
-    await page.reload();
+    await page.locator('label:has-text("Email")').locator('..').locator('input').fill(uniqueEmail);
+    await page.locator('label:has-text("Password")').locator('..').locator('input').fill('TempPassword1!');
+    await page.locator('button:has-text("Login")').click();
 
-    // Verify blocked by Security Alert
+    // Verify blocked by Security Alert / Change Password Form
     const alert = page.getByTestId('must-change-password-alert');
     await expect(alert).toBeVisible();
     await expect(page.locator('text=You must change your temporary password')).toBeVisible();
 
-    // Verify logout works from the alert
-    await page.click('[data-testid="must-change-password-alert"] button:has-text("Logout")');
+    // 3. User changes password
+    await page.locator('label:has-text("New Password")').locator('..').locator('input').fill('NewStrongPassword1!');
+    await page.locator('button:has-text("Change Password")').click();
+
+    // Verify successfully logged in after changing password
+    await expect(page.locator('text=Logged in as:')).toBeVisible();
+    await expect(page.locator('text=New User')).toBeVisible();
+
+    // Logout
+    await page.click('button:has-text("Logout")');
     await expect(page.locator('text=Authentication Required')).toBeVisible();
   });
 

@@ -4,6 +4,7 @@ import { MyTickets } from "./components/MyTickets";
 import { TicketDetail } from "./components/TicketDetail";
 import { StaffTicketQueue } from "./components/StaffTicketQueue";
 import { UserManagement } from "./components/UserManagement";
+import { Login } from "./components/Login";
 
 interface User {
   id: number;
@@ -40,26 +41,27 @@ export default function App() {
     console.log("Created", ticketNumber);
   }
 
+  const handleLoginSuccess = (token: string, userData: any) => {
+    localStorage.setItem("token", token);
+    setUser({
+      id: userData.id || userData.userId,
+      fullName: userData.fullName || "User",
+      role: userData.role || "REQUESTER",
+      mustChangePassword: !!userData.mustChangePassword
+    });
+  };
+
   if (!user) {
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-warning">
-          <h4>Authentication Required</h4>
-          <p>Please login to continue. (Issue 4 UI pending)</p>
-          <small className="text-muted">Set localStorage item 'token' with a valid JWT to simulate login.</small>
-        </div>
-      </div>
-    );
+    return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (user.mustChangePassword) {
+    // If somehow a token with mustChangePassword leaks into this state without being handled by Login
     return (
       <div className="container mt-5">
         <div className="alert alert-danger" data-testid="must-change-password-alert">
           <h4>Security Alert</h4>
           <p>You must change your temporary password before accessing the system.</p>
-          <small className="text-muted">(Password change UI is pending implementation)</small>
-          <br/>
           <button className="btn btn-outline-danger mt-3" onClick={() => { localStorage.removeItem("token"); setUser(null); }}>Logout</button>
         </div>
       </div>

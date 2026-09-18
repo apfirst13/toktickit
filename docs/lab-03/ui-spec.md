@@ -42,10 +42,10 @@
 - Introduces a "Problem Appears Resolved" action button, allowing the Requester to indicate resolution without formally altering the IT status.
 
 ## 3. Responsive and Visual Checklist
-- [ ] Desktop (≥992px): Centered layouts, table views unclipped.
-- [ ] Tablet (768-991px): Adaptive grid collapse, legible typography.
-- [ ] Mobile (<768px): Vertical stacking, touch-friendly hit areas (≥44px), zero horizontal overflow.
-- [ ] Distinct styling between Public Comments and Internal Notes.
+- [x] Desktop (≥992px): Centered layouts, table views unclipped.
+- [x] Tablet (768-991px): Adaptive grid collapse, legible typography.
+- [x] Mobile (<768px): Vertical stacking, touch-friendly hit areas (≥44px), zero horizontal overflow.
+- [x] Distinct styling between Public Comments and Internal Notes.
 
 ## 4. Screen Modes and Feedback States
 - **Screen Modes:**

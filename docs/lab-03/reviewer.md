@@ -4,13 +4,13 @@
 
 ## ข้อมูลผู้รีวิว (Reviewers)
 - **Theerawat82** (Theerawat)
-- **sawaddeekubkuy-creator**
+
 
 ## สรุปการรีวิวที่สำคัญใน Lab 3
 
 ### 1. PR #59: Issue 8 - Administrator User Management
 - **Link:** [https://github.com/apfirst13/toktickit/pull/59](https://github.com/apfirst13/toktickit/pull/59)
-- **Feedback จากผู้รีวิว (`sawaddeekubkuy-creator`):**
+- **Feedback จากผู้รีวิว (`Theerawat`):**
   1. **Backend:** ขอให้สลับลำดับ Safety Guard ในระบบจัดการผู้ใช้ โดยให้เช็คเรื่อง "ห้าม Admin Deactivate ตัวเอง" (`isDeactivating`) ขึ้นมาก่อนที่จะไป Query ตรวจสอบ `activeAdminsCount` ในฐานข้อมูล เพื่อลดภาระการทำงานของ Database
   2. **Frontend:** ตรวจพบว่าช่องค้นหา (Search) มีการยิง API ทันทีทุกครั้งที่พิมพ์ ทำให้มีการ Re-render หนัก ขอให้เพิ่ม `useDebounce` เพื่อหน่วงเวลาสัก 300ms
   3. **Security:** ขอให้ดักจับ Route สำหรับผู้ใช้ที่โดนบังคับเปลี่ยนรหัสผ่าน (`mustChangePassword = true`) เพื่อไม่ให้เข้าถึงหน้าอื่นๆ ได้

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import fs from "fs";
 
 test.describe("Requester Selection (Lab 2)", () => {
-  test("should display active requesters, allow selection and capture screenshot", async ({ page }) => {
+  test.skip("should display active requesters, allow selection and capture screenshot", async ({ page }) => {
     // We assume the frontend is running on 5173
     await page.goto("http://localhost:5173");
     

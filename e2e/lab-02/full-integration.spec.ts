@@ -6,10 +6,11 @@ const BASE_URL = "http://localhost:5173";
 const ARTIFACTS_DIR = "artifacts/lab-02/screenshots";
 
 test.describe("Full User Journey E2E (Lab 2)", () => {
-  test.beforeEach(async ({ page }) => {
-    // Clear localStorage before test to start fresh
+  test.beforeEach(async ({ page, request }) => {
+    const res = await request.post('/api/auth/login', { data: { email: 'req1@toktickit.com', password: 'Password123!' } });
+    const data = await res.json();
     await page.goto(BASE_URL);
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate((token) => localStorage.setItem('token', token), data.token);
     await page.reload();
 
     // Ensure artifacts dir exists

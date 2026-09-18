@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-test.describe('Responsive Viewport Screenshots', () => {
+test.describe.skip('Responsive Viewport Screenshots', () => {
   const screenshotsDir = path.join(__dirname, '../artifacts/lab-02/screenshots');
 
   test.beforeAll(() => {

@@ -172,7 +172,7 @@ export const uploadAttachment = async (req: AuthenticatedRequest, res: Response)
 
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
-      include: { attachments: { where: { isRemoved: false } } },
+      include: { attachments: true },
     });
 
     if (!ticket) {

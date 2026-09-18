@@ -9,7 +9,7 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('text=Authentication Required')).toBeVisible();
 
     // Fill the real login form
-    await page.locator('label:has-text("Email")').locator('..').locator('input').fill('req1@toktickit.com');
+    await page.locator('label:has-text("Email")').locator('..').locator('input').fill('admin@toktickit.com');
     await page.locator('label:has-text("Password")').locator('..').locator('input').fill('Password123!');
     
     // Submit
@@ -17,7 +17,7 @@ test.describe('Authentication Flow', () => {
 
     // Verify UI recognizes the user
     await expect(page.locator('text=Logged in as:')).toBeVisible();
-    await expect(page.locator('text=Alice Requester')).toBeVisible();
+    await expect(page.locator('text=Super Admin')).toBeVisible();
 
     // Logout
     await page.click('button:has-text("Logout")');

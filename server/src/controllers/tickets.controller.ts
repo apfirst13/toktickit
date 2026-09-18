@@ -9,7 +9,10 @@ const UPLOAD_DIR = path.resolve('uploads');
 
 export const getTickets = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const requesterId = req.user!.id;
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
+    const requesterId = req.user.id;
     const { page = "1", limit = "10", search, categoryId, sortBy } = req.query;
 
     const pageNum = Math.max(1, parseInt(page as string, 10));
@@ -64,7 +67,10 @@ export const getTickets = async (req: AuthenticatedRequest, res: Response): Prom
 
 export const getTicketById = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const requesterId = req.user!.id;
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
+    const requesterId = req.user.id;
     const ticketId = Number(req.params.id);
 
     const ticket = await prisma.ticket.findUnique({
@@ -82,7 +88,7 @@ export const getTicketById = async (req: AuthenticatedRequest, res: Response): P
       return res.status(404).json({ error: "Ticket not found" });
     }
 
-    if (ticket.requesterUserId !== requesterId && !['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
+    if (ticket.requesterUserId !== requesterId && !['IT_STAFF', 'ADMINISTRATOR'].includes(req.user.role)) {
       return res.status(404).json({ error: "Ticket not found" });
     }
 
@@ -94,8 +100,11 @@ export const getTicketById = async (req: AuthenticatedRequest, res: Response): P
 };
 
 export const createTicket = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized: No session found.' });
+  }
   const { summary, description, requestedPriority, categoryId, systemId } = req.body;
-  const requesterId = req.user!.id;
+  const requesterId = req.user.id;
 
   const errors = [];
   
@@ -167,8 +176,12 @@ export const createTicket = async (req: AuthenticatedRequest, res: Response): Pr
 
 export const uploadAttachment = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
+    if (!req.user) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
     const ticketId = Number(req.params.id);
-    const requesterId = req.user!.id;
+    const requesterId = req.user.id;
 
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
@@ -214,7 +227,10 @@ export const uploadAttachment = async (req: AuthenticatedRequest, res: Response)
 
 export const downloadAttachment = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const requesterId = req.user!.id;
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
+    const requesterId = req.user.id;
     const ticketId = Number(req.params.id);
     const attachmentId = Number(req.params.attachmentId);
 
@@ -249,7 +265,10 @@ export const downloadAttachment = async (req: AuthenticatedRequest, res: Respons
 
 export const removeAttachment = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const requesterId = req.user!.id;
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
+    const requesterId = req.user.id;
     const { removalReason } = req.body;
     const ticketId = Number(req.params.id);
     const attachmentId = Number(req.params.attachmentId);
@@ -280,6 +299,9 @@ export const removeAttachment = async (req: AuthenticatedRequest, res: Response)
 
 export const addPublicComment = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
     const requesterId = req.user.id;
     const ticketId = Number(req.params.id);
     const { content } = req.body;
@@ -310,6 +332,9 @@ export const addPublicComment = async (req: AuthenticatedRequest, res: Response)
 
 export const setAppearsResolved = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
     const requesterId = req.user.id;
     const ticketId = Number(req.params.id);
 
@@ -335,7 +360,10 @@ export const setAppearsResolved = async (req: AuthenticatedRequest, res: Respons
 };
 export const getInternalNotes = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
+    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Forbidden: Only IT Staff and Administrators can access internal notes' });
     }
     const ticketId = Number(req.params.id);
@@ -352,7 +380,10 @@ export const getInternalNotes = async (req: AuthenticatedRequest, res: Response)
 
 export const addInternalNote = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user!.role)) {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: No session found.' });
+    }
+    if (!['IT_STAFF', 'ADMINISTRATOR'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     const ticketId = Number(req.params.id);
@@ -363,7 +394,7 @@ export const addInternalNote = async (req: AuthenticatedRequest, res: Response):
       data: {
         content,
         ticketId,
-        authorId: req.user!.id
+        authorId: req.user.id
       },
       include: { author: { select: { fullName: true, role: true } } }
     });

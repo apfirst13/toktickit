@@ -16,7 +16,7 @@
 | **API-03** | AC-03 (API) | Reject 6th attachment | 400 Bad Request; error message regarding attachment limit | `server/tests/lab-02/attachments.api.test.ts` | PASS |
 | **API-04** | AC-04 (API) | Soft remove attachment | 200 OK; attachment marked as removed, file untouched initially | `server/tests/lab-02/attachments.api.test.ts` | PASS |
 | **API-05** | API (Negative) | Reject invalid file type | 400 Bad Request | `server/tests/lab-02/attachments.api.test.ts` | PASS |
-| **API-06** | API (Negative) | Request with missing requesterId | 400 Bad Request | `server/tests/lab-02/tickets.api.test.ts` | PASS |
+| **API-06** | API (Negative) | Request with missing requesterId | 400 Bad Request | `![alt text](image-2.png)server/tests/lab-02/tickets.api.test.ts` | PASS |
 | **API-07** | API (Negative) | Reject attachment > 5MB | 400 Bad Request | `server/tests/lab-02/attachments.api.test.ts` | PASS |
 | **API-08** | FR-01 (API) | Get active requesters list | 200 OK; array of active requesters returned | `server/tests/lab-02/requesters.api.test.ts` | PASS |
 | **API-09** | BR-07 (API) | Store attachments as UUID v4 | Returned fileUrl contains valid UUID v4 format | `server/tests/lab-02/attachments.api.test.ts` | PASS |

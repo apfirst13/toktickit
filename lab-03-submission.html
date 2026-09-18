@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 3 Submission Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #006B3C; border-bottom: 2px solid #006B3C; padding-bottom: 10px; }
+        h2 { color: #004d2b; margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        h3 { color: #006B3C; margin-top: 20px; }
+        .placeholder { border: 2px dashed #dc3545; background-color: #f8d7da; color: #721c24; padding: 20px; text-align: center; margin: 15px 0; border-radius: 5px; font-weight: bold; }
+        .screenshot-container { margin: 15px 0; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #f9f9f9; text-align: center; }
+        .screenshot-container img { max-width: 100%; height: auto; border: 1px solid #ccc; }
+        .caption { font-style: italic; color: #555; margin-top: 10px; display: block; }
+        a { color: #006B3C; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ul { padding-left: 20px; }
+        .narrative { background-color: #f0f7f4; padding: 15px; border-left: 4px solid #006B3C; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #006B3C; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>Lab 3 Submission Report</h1>
+    <p><strong>Name:</strong> Aphiwat Panthathanaphat | <strong>Student ID:</strong> 67070507209</p>
+
+    <h2>Answer Part 1: Git Use with Engineering Workflow</h2>
+    <ul>
+        <li><strong>GitHub Repository URL:</strong> <a href="https://github.com/apfirst13/toktickit">https://github.com/apfirst13/toktickit</a></li>
+        <li><strong>Main Branch Strategy:</strong> <code>main</code> (Production) &larr; <code>lab3-staging</code> (Integration) &larr; <code>feat/*</code> (Feature Branches).</li>
+        <li><strong>Key Pull Requests:</strong> 
+            <ul>
+                <li>PR #59: Admin User Management (Issue 8)</li>
+                <li>PR #60: E2E Testing Full Flow (Issue 9)</li>
+                <li>PR #61: Visual Inspection & Screenshots (Issue 10)</li>
+                <li>PR #62: Release Integration & Documentation (Issue 11)</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>Answer Part 2: Spec DD</h2>
+    <p>Documentation updated for Lab 3 specifications:</p>
+    <ul>
+        <li><code>docs/lab-03/specification.md</code>: Business Rules and Functional Requirements.</li>
+        <li><code>docs/lab-03/api-spec.md</code>: API Endpoints (Auth, Staff, Admin).</li>
+        <li><code>docs/lab-03/ui-spec.md</code>: UI Wireframes and Constraints.</li>
+    </ul>
+
+    <h2>Answer Part 3: Test DD and Traceability</h2>
+    <p>Traceability matrix and test specifications are documented in:</p>
+    <ul>
+        <li><code>docs/lab-03/tests.md</code>: Covers ACs, BRs, Security, and Edge Cases.</li>
+    </ul>
+
+    <h2>Answer Part 4: AI Use with Reflection</h2>
+    <p>AI usage prompts and formal reflection are documented in:</p>
+    <ul>
+        <li><code>docs/lab-03/ai-use.md</code>: Contains 9+ actual prompts and analysis of AI strengths/limitations.</li>
+    </ul>
+
+    <h2>Answer Part 5: Auth & Role Management</h2>
+    <p>Implemented secure JWT authentication, initial password changes, and database roles.</p>
+    <ul>
+        <li><strong>Route Guard:</strong> <code>App.tsx</code> forces <code>mustChangePassword</code> check.</li>
+        <li><strong>Tests:</strong> <code>e2e/lab-03/authentication.spec.ts</code></li>
+    </ul>
+
+    <h2>Answer Part 6: IT Staff Ticket Queue & Detail</h2>
+    <p>IT Staff can view, filter, and add internal notes to tickets.</p>
+    <ul>
+        <li><strong>Internal Notes:</strong> Golden tint applied, visible only to Staff/Admin.</li>
+        <li><strong>Tests:</strong> <code>e2e/lab-03/staff-ticket-flow.spec.ts</code></li>
+    </ul>
+
+    <h2>Answer Part 7: Administrator User Management</h2>
+    <p>Administrators can manage users with strict safety constraints (cannot deactivate self/last admin).</p>
+    <ul>
+        <li><strong>Safety Guards:</strong> Handled in <code>users.controller.ts</code>.</li>
+        <li><strong>Tests:</strong> <code>e2e/lab-03/user-administration.spec.ts</code></li>
+    </ul>
+
+    <h2>Answer Part 8: Peer Review Log</h2>
+    <p>Cross-project peer review feedback and resolution are documented in:</p>
+    <ul>
+        <li><code>docs/lab-03/reviewer.md</code>: Features feedback from `Theerawat82` and `sawaddeekubkuy-creator`.</li>
+    </ul>
+
+    <h2>Answer Part 9: Zen Green UI and Responsive Evidence (VIS-01)</h2>
+    <p>Automated visual inspection passing all breakpoints (Desktop, Tablet, Mobile) generated via Playwright.</p>
+    
+    <h3>Auth Alert</h3>
+    <div class="screenshot-container">
+        <img src="./artifacts/lab-03/screenshots/desktop-01-auth-alert.png" alt="Desktop Auth Alert">
+        <span class="caption">Desktop - Security Alert for Password Change</span>
+    </div>
+
+    <h3>Staff Queue (Tablet)</h3>
+    <div class="screenshot-container">
+        <img src="./artifacts/lab-03/screenshots/tablet-02-staff-queue.png" alt="Tablet Staff Queue">
+        <span class="caption">Tablet - IT Staff Ticket Queue (Responsive Card Layout)</span>
+    </div>
+
+    <h3>Staff Detail (Desktop)</h3>
+    <div class="screenshot-container">
+        <img src="./artifacts/lab-03/screenshots/desktop-03-staff-detail.png" alt="Desktop Staff Detail">
+        <span class="caption">Desktop - IT Staff Ticket Detail with Internal Note</span>
+    </div>
+
+    <h3>Admin Users (Mobile)</h3>
+    <div class="screenshot-container">
+        <img src="./artifacts/lab-03/screenshots/mobile-04-admin-users.png" alt="Mobile Admin Users">
+        <span class="caption">Mobile - Administrator User Management</span>
+    </div>
+
+</body>
+</html>

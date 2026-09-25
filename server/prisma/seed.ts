@@ -142,16 +142,64 @@ async function main() {
       }
     }
     console.log(`Seeded ${ticketCount} new tickets with initial comments and notes.`);
-  } else {
+    } else {
     console.warn('Skipped ticket seeding due to missing relations.');
   }
 
-  console.log('✅ Lab 3 Seeding completed successfully!');
+  console.log('Seeding Lab 4 ActionTaken records...');
+  const ticket1 = await prisma.ticket.findFirst({ where: { summary: 'Laptop screen flickering' } });
+  if (ticket1 && staff1) {
+    const existingActions = await prisma.actionTaken.count({ where: { ticketId: ticket1.id } });
+    if (existingActions === 0) {
+      await prisma.actionTaken.create({
+        data: {
+          ticketId: ticket1.id,
+          actionDateTime: new Date(),
+          description: 'Updated graphics driver',
+          result: 'Flickering reduced but not completely gone.',
+          performedById: staff1.id,
+          followUpRequired: true,
+          followUpNote: 'Check again tomorrow if it returns.',
+        }
+      });
+      await prisma.actionTaken.create({
+        data: {
+          ticketId: ticket1.id,
+          actionDateTime: new Date(),
+          description: 'Replaced display cable',
+          result: 'Issue completely resolved.',
+          performedById: staff1.id,
+          followUpRequired: false,
+        }
+      });
+      console.log('Added multiple ActionTaken records to "Laptop screen flickering".');
+    }
+  }
+
+  const ticket3 = await prisma.ticket.findFirst({ where: { summary: 'Email not syncing on mobile' } });
+  if (ticket3 && staff2) {
+    const existingActions = await prisma.actionTaken.count({ where: { ticketId: ticket3.id } });
+    if (existingActions === 0) {
+      await prisma.actionTaken.create({
+        data: {
+          ticketId: ticket3.id,
+          actionDateTime: new Date(),
+          description: 'Reset sync state on server',
+          result: 'Mobile device started syncing immediately.',
+          performedById: staff2.id,
+          followUpRequired: false,
+        }
+      });
+      console.log('Added 1 ActionTaken record to "Email not syncing on mobile".');
+    }
+  }
+
+  console.log('Lab 4 Seeding completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
+    console.error('Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {

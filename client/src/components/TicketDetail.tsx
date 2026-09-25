@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ActionsTakenList } from "./tickets/ActionsTakenList";
 
 interface UserInfo {
   id?: number;
@@ -597,8 +598,10 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="row g-4 mt-2">
         <div className="col-md-7">
+          <ActionsTakenList ticketId={ticket.id} userRole={currentUser.role} />
+          
           <div className="card shadow-sm h-100 mb-4">
             <div className="card-header bg-white">
               <strong>Public Comments</strong>

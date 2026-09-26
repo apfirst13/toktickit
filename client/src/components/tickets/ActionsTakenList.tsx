@@ -22,6 +22,8 @@ interface ActionsTakenListProps {
   userRole?: string;
 }
 
+const ZEN = "#006B3C";
+
 export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) => {
   const [actions, setActions] = useState<ActionTaken[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +114,7 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
       <div className="card-header bg-white d-flex justify-content-between align-items-center">
         <strong>Actions Taken</strong>
         {canEdit && !isCreating && !editingId && (
-          <button className="btn btn-sm btn-outline-primary" onClick={() => setIsCreating(true)}>
+          <button className="btn btn-sm" style={{ color: ZEN, borderColor: ZEN, backgroundColor: 'transparent' }} onClick={() => setIsCreating(true)}>
             + Add Action
           </button>
         )}
@@ -133,7 +135,7 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
         ) : (
           <div className="mt-3">
             {actions.map(action => (
-              <div key={action.id} className="mb-3 border-start border-4 border-primary ps-3 pb-3 border-bottom">
+              <div key={action.id} className="mb-3 border-start border-4 ps-3 pb-3 border-bottom" style={{ borderColor: `${ZEN} !important` }}>
                 {editingId === action.id ? (
                   <ActionTakenForm 
                     initialData={action}
@@ -151,7 +153,7 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
                         </div>
                       </div>
                       {canEdit && (
-                        <button className="btn btn-sm btn-link text-primary p-0" onClick={() => setEditingId(action.id)}>
+                        <button className="btn btn-sm btn-link p-0" style={{ color: ZEN }} onClick={() => setEditingId(action.id)}>
                           Edit
                         </button>
                       )}

@@ -17,8 +17,16 @@ interface ActionTakenFormProps {
   isSubmitting: boolean;
 }
 
+const ZEN = "#006B3C";
+
+const getLocalDatetimeLocal = (date?: string | Date) => {
+  const d = date ? new Date(date) : new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+};
+
 export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting }: ActionTakenFormProps) => {
-  const [actionDateTime, setActionDateTime] = useState(initialData?.actionDateTime ? new Date(initialData.actionDateTime).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+  const [actionDateTime, setActionDateTime] = useState(initialData?.actionDateTime ? getLocalDatetimeLocal(initialData.actionDateTime) : getLocalDatetimeLocal());
   const [description, setDescription] = useState(initialData?.description || '');
   const [result, setResult] = useState(initialData?.result || '');
   const [followUpRequired, setFollowUpRequired] = useState(initialData?.followUpRequired || false);
@@ -98,7 +106,7 @@ export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting 
       
       <div className="d-flex justify-content-end gap-2">
         <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onCancel} disabled={isSubmitting}>Cancel</button>
-        <button type="submit" className="btn btn-sm btn-primary" disabled={isSubmitting}>
+        <button type="submit" className="btn btn-sm text-white" style={{ backgroundColor: ZEN, borderColor: ZEN }} disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save Action'}
         </button>
       </div>

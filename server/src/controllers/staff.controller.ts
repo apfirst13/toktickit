@@ -153,9 +153,19 @@ export const updateTicket = async (req: AuthenticatedRequest, res: Response): Pr
 
       const allowed = allowedTransitions[current] || [];
       if (!allowed.includes(target)) {
-        return res.status(400).json({ error: `Invalid status transition from ${current} to ${target}` });
-      }
-      updates.currentStatus = target;
+          return res.status(400).json({ error: `Invalid status transition from ${current} to ${target}` });
+        }
+
+        if (target === 'RESOLVED') {
+          const actionCount = await prisma.actionTaken.count({
+            where: { ticketId }
+          });
+          if (actionCount === 0) {
+            return res.status(400).json({ error: 'Cannot transition to RESOLVED: At least one Action Taken is required' });
+          }
+        }
+
+        updates.currentStatus = target;
     }
 
     const updatedTicket = await prisma.ticket.update({
@@ -169,3 +179,4 @@ export const updateTicket = async (req: AuthenticatedRequest, res: Response): Pr
     return res.status(500).json({ error: 'Failed to update ticket' });
   }
 };
+

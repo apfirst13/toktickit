@@ -16,12 +16,30 @@ let requesterUserId: number;
 describe('Lab 4 - Actions Taken API', () => {
   beforeAll(async () => {
     // Make sure we have the required users
-    const staff = await prisma.user.findUnique({ where: { email: 'staff1@toktickit.com' } });
-    const reqUser = await prisma.user.findUnique({ where: { email: 'req1@toktickit.com' } });
-    
-    if (!staff || !reqUser) {
-      throw new Error("Seed data missing for tests");
-    }
+    const staff = await prisma.user.upsert({
+      where: { email: 'staff1@toktickit.com' },
+      update: {},
+      create: {
+        email: 'staff1@toktickit.com',
+        passwordHash: 'dummy',
+        fullName: 'Staff 1',
+        role: 'IT_STAFF',
+        isActive: true,
+        mustChangePassword: false
+      }
+    });
+    const reqUser = await prisma.user.upsert({
+      where: { email: 'req1@toktickit.com' },
+      update: {},
+      create: {
+        email: 'req1@toktickit.com',
+        passwordHash: 'dummy',
+        fullName: 'Requester 1',
+        role: 'REQUESTER',
+        isActive: true,
+        mustChangePassword: false
+      }
+    });
     
     staffUserId = staff.id;
     requesterUserId = reqUser.id;
@@ -55,8 +73,10 @@ describe('Lab 4 - Actions Taken API', () => {
   });
 
   afterAll(async () => {
-    await prisma.actionTaken.deleteMany({ where: { ticketId: testTicketId } });
-    await prisma.ticket.delete({ where: { id: testTicketId } });
+    if (testTicketId) {
+      await prisma.actionTaken.deleteMany({ where: { ticketId: testTicketId } });
+      await prisma.ticket.delete({ where: { id: testTicketId } });
+    }
     await prisma.$disconnect();
   });
 

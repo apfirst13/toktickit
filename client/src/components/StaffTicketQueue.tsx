@@ -30,6 +30,11 @@ interface Category {
 interface StaffTicketQueueProps {
   userId: number;
   onViewTicket: (id: number) => void;
+  initialFilters?: {
+    status?: string;
+    owner?: string;
+    reqPriority?: string;
+  };
 }
 
 /* ─── Constants ─── */
@@ -67,7 +72,7 @@ function formatStatus(s: string): string {
 }
 
 /* ─── Component ─── */
-export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps) {
+export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: StaffTicketQueueProps) {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({ total: 0, page: 1, pageSize: 10, totalPages: 1 });
   const [categories, setCategories] = useState<Category[]>([]);
@@ -76,14 +81,22 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
 
   // Filters
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialFilters?.status || "");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [reqPriorityFilter, setReqPriorityFilter] = useState("");
+  const [reqPriorityFilter, setReqPriorityFilter] = useState(initialFilters?.reqPriority || "");
   const [itPriorityFilter, setItPriorityFilter] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState(""); // "", "unassigned", "me", or staff id
+  const [ownerFilter, setOwnerFilter] = useState(initialFilters?.owner || ""); // "", "unassigned", "me", or staff id
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (initialFilters) {
+      if (initialFilters.status !== undefined) setStatusFilter(initialFilters.status);
+      if (initialFilters.owner !== undefined) setOwnerFilter(initialFilters.owner);
+      if (initialFilters.reqPriority !== undefined) setReqPriorityFilter(initialFilters.reqPriority);
+    }
+  }, [initialFilters]);
 
   const hasActiveFilters = search || statusFilter || categoryFilter || reqPriorityFilter || itPriorityFilter || ownerFilter;
 

@@ -24,8 +24,20 @@ export const getQueue = async (req: AuthenticatedRequest, res: Response): Promis
     }
 
     if (category) where.category = { name: { equals: category as string, mode: 'insensitive' } };
-    if (status) where.currentStatus = status;
-    if (requestedPriority) where.requestedPriority = requestedPriority;
+    if (status) {
+      if ((status as string).includes(',')) {
+        where.currentStatus = { in: (status as string).split(',') };
+      } else {
+        where.currentStatus = status;
+      }
+    }
+    if (requestedPriority) {
+      if ((requestedPriority as string).includes(',')) {
+        where.requestedPriority = { in: (requestedPriority as string).split(',') };
+      } else {
+        where.requestedPriority = requestedPriority;
+      }
+    }
     if (itPriority) where.itPriority = itPriority;
 
     if (assignedTo === 'unassigned') {

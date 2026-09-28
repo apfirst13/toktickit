@@ -6,6 +6,7 @@ import { StaffTicketQueue } from "./components/StaffTicketQueue";
 import { UserManagement } from "./components/UserManagement";
 import { Login } from "./components/Login";
 import { RequesterDashboard } from "./components/dashboard/RequesterDashboard";
+import { StaffDashboard } from "./components/dashboard/StaffDashboard";
 
 interface User {
   id: number;
@@ -21,6 +22,7 @@ export default function App() {
   const [view, setView] = useState<ViewState>("CREATE");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [ticketListFilter, setTicketListFilter] = useState<string>("");
+  const [staffQueueFilters, setStaffQueueFilters] = useState<{ status?: string; owner?: string; reqPriority?: string }>({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -77,16 +79,14 @@ export default function App() {
         
         <div className="mt-3 mt-md-0 d-flex gap-2 align-items-center">
           <div className="btn-group" role="group">
-            {user.role === "REQUESTER" && (
-              <button 
-                className={`btn btn-sm ${view === "DASHBOARD" ? "btn-primary" : "btn-outline-primary"}`}
-                style={view === "DASHBOARD" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
-                onClick={() => setView("DASHBOARD")}
-                data-testid="nav-dashboard"
-              >
-                Dashboard
-              </button>
-            )}
+            <button 
+              className={`btn btn-sm ${view === "DASHBOARD" ? "btn-primary" : "btn-outline-primary"}`}
+              style={view === "DASHBOARD" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
+              onClick={() => setView("DASHBOARD")}
+              data-testid="nav-dashboard"
+            >
+              Dashboard
+            </button>
             <button 
               className={`btn btn-sm ${view === "CREATE" ? "btn-primary" : "btn-outline-primary"}`}
               style={view === "CREATE" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
@@ -149,6 +149,20 @@ export default function App() {
         />
       )}
 
+      {view === "DASHBOARD" && (user.role === "IT_STAFF" || user.role === "ADMINISTRATOR") && (
+        <StaffDashboard
+          userRole={user.role}
+          onViewTicket={(id) => {
+            setSelectedTicketId(id);
+            setView("DETAIL");
+          }}
+          onNavigateToQueue={(filters) => {
+            setStaffQueueFilters(filters);
+            setView("STAFF_QUEUE");
+          }}
+        />
+      )}
+
       {view === "CREATE" && (
         <CreateTicket requesterId={user.id} onSuccess={handleTicketCreated} />
       )}
@@ -167,6 +181,7 @@ export default function App() {
       {view === "STAFF_QUEUE" && (
         <StaffTicketQueue
           userId={user.id}
+          initialFilters={staffQueueFilters}
           onViewTicket={(id) => {
             setSelectedTicketId(id);
             setView("DETAIL");

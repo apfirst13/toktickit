@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
 
 export const getQueue = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { page = 1, limit = 10, search, category, status, requestedPriority, itPriority, assignedTo, sortBy, sortOrder } = req.query;
+    const { page = 1, limit = 10, search, category, status, requestedPriority, itPriority, assignedTo, sortBy, sortOrder, isUrgent } = req.query;
 
     const pageNumber = Math.max(1, parseInt(page as string) || 1);
     let limitNumber = Math.max(1, parseInt(limit as string) || 10);
@@ -24,9 +24,37 @@ export const getQueue = async (req: AuthenticatedRequest, res: Response): Promis
     }
 
     if (category) where.category = { name: { equals: category as string, mode: 'insensitive' } };
-    if (status) where.currentStatus = status;
-    if (requestedPriority) where.requestedPriority = requestedPriority;
-    if (itPriority) where.itPriority = itPriority;
+    if (status) {
+      if ((status as string).includes(',')) {
+        where.currentStatus = { in: (status as string).split(',') };
+      } else {
+        where.currentStatus = status;
+      }
+    }
+    if (isUrgent === 'true') {
+      const urgentOr = [
+        { requestedPriority: { in: ['HIGH', 'URGENT'] } },
+        { itPriority: { in: ['HIGH', 'URGENT'] } }
+      ];
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR },
+          { OR: urgentOr }
+        ];
+        delete where.OR;
+      } else {
+        where.OR = urgentOr;
+      }
+    } else {
+      if (requestedPriority) {
+        if ((requestedPriority as string).includes(',')) {
+          where.requestedPriority = { in: (requestedPriority as string).split(',') };
+        } else {
+          where.requestedPriority = requestedPriority;
+        }
+      }
+      if (itPriority) where.itPriority = itPriority;
+    }
 
     if (assignedTo === 'unassigned') {
       where.assignedStaffId = null;

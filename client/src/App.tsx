@@ -5,6 +5,7 @@ import { TicketDetail } from "./components/TicketDetail";
 import { StaffTicketQueue } from "./components/StaffTicketQueue";
 import { UserManagement } from "./components/UserManagement";
 import { Login } from "./components/Login";
+import { RequesterDashboard } from "./components/dashboard/RequesterDashboard";
 
 interface User {
   id: number;
@@ -13,12 +14,13 @@ interface User {
   mustChangePassword?: boolean;
 }
 
-type ViewState = "CREATE" | "LIST" | "DETAIL" | "STAFF_QUEUE" | "USERS";
+type ViewState = "CREATE" | "LIST" | "DETAIL" | "STAFF_QUEUE" | "USERS" | "DASHBOARD";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [view, setView] = useState<ViewState>("CREATE");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [ticketListFilter, setTicketListFilter] = useState<string>("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -75,6 +77,16 @@ export default function App() {
         
         <div className="mt-3 mt-md-0 d-flex gap-2 align-items-center">
           <div className="btn-group" role="group">
+            {user.role === "REQUESTER" && (
+              <button 
+                className={`btn btn-sm ${view === "DASHBOARD" ? "btn-primary" : "btn-outline-primary"}`}
+                style={view === "DASHBOARD" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
+                onClick={() => setView("DASHBOARD")}
+                data-testid="nav-dashboard"
+              >
+                Dashboard
+              </button>
+            )}
             <button 
               className={`btn btn-sm ${view === "CREATE" ? "btn-primary" : "btn-outline-primary"}`}
               style={view === "CREATE" ? { backgroundColor: "#006B3C", borderColor: "#006B3C" } : { borderColor: "#006B3C", color: "#006B3C" }}
@@ -123,6 +135,20 @@ export default function App() {
         </div>
       </div>
 
+      {view === "DASHBOARD" && user.role === "REQUESTER" && (
+        <RequesterDashboard 
+          onCreateTicket={() => setView("CREATE")}
+          onViewTicket={(id) => {
+            setSelectedTicketId(id);
+            setView("DETAIL");
+          }}
+          onNavigateToList={(statuses) => {
+            setTicketListFilter(statuses);
+            setView("LIST");
+          }}
+        />
+      )}
+
       {view === "CREATE" && (
         <CreateTicket requesterId={user.id} onSuccess={handleTicketCreated} />
       )}
@@ -130,6 +156,7 @@ export default function App() {
       {view === "LIST" && (
         <MyTickets 
           requesterId={user.id} 
+          initialStatus={ticketListFilter}
           onViewTicket={(id) => {
             setSelectedTicketId(id);
             setView("DETAIL");

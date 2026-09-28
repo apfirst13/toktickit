@@ -13,7 +13,7 @@ export const getTickets = async (req: AuthenticatedRequest, res: Response): Prom
       return res.status(401).json({ error: 'Unauthorized: No session found.' });
     }
     const requesterId = req.user.id;
-    const { page = "1", limit = "10", search, categoryId, sortBy } = req.query;
+    const { page = "1", limit = "10", search, categoryId, sortBy, status } = req.query;
 
     const pageNum = Math.max(1, parseInt(page as string, 10));
     const limitNum = Math.max(1, parseInt(limit as string, 10));
@@ -25,6 +25,10 @@ export const getTickets = async (req: AuthenticatedRequest, res: Response): Prom
     }
     if (categoryId && !isNaN(Number(categoryId))) {
       where.categoryId = Number(categoryId);
+    }
+    if (status && typeof status === 'string') {
+      const statuses = status.split(',');
+      where.currentStatus = { in: statuses };
     }
     
     let orderBy: any = { createdAt: "desc" };

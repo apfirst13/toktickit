@@ -114,4 +114,14 @@ describe("Lab 4 - Ticket Workflow API", () => {
     expect(res.body.appearsResolved).toBe(true);
     expect(res.body.currentStatus).toBe("IN_PROGRESS");
   });
+
+  it("API-12: should return 409 Conflict if expectedStatus does not match", async () => {
+    const res = await request(app)
+      .patch(`/api/staff/tickets/${testTicketId1}`)
+      .set("Authorization", "Bearer " + staffToken)
+      .send({ status: "REOPENED", expectedStatus: "OPEN" }); // intentionally wrong expectedStatus
+    
+    expect(res.status).toBe(409);
+    expect(res.body.error).toContain("Ticket status has changed");
+  });
 });

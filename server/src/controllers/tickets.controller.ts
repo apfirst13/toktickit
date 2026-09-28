@@ -1,3 +1,4 @@
+import { buildTicketWhereClause } from '../utils/ticket-query.util.js';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
 import { prisma } from '../prisma.js';
@@ -19,16 +20,19 @@ export const getTickets = async (req: AuthenticatedRequest, res: Response): Prom
     const limitNum = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNum - 1) * limitNum;
     
-    const where: any = { requesterUserId: requesterId };
-    if (search && typeof search === 'string' && search.trim() !== '') {
-      where.summary = { contains: search, mode: 'insensitive' };
-    }
-    if (categoryId && !isNaN(Number(categoryId))) {
-      where.categoryId = Number(categoryId);
-    }
-    if (status && typeof status === 'string') {
-      const statuses = status.split(',');
-      where.currentStatus = { in: statuses };
+    let where: any;
+    try {
+      where = buildTicketWhereClause({
+        requesterUserId: requesterId,
+        search: search as string,
+        categoryId: categoryId ? Number(categoryId) : undefined,
+        status: status as string
+      });
+    } catch (e: any) {
+      if (e.message === 'INVALID_STATUS_FILTER') {
+        return res.status(400).json({ error: 'Invalid status filter' });
+      }
+      throw e;
     }
     
     let orderBy: any = { createdAt: "desc" };

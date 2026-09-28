@@ -11,17 +11,24 @@ export const getRequesterDashboard = async (req: AuthenticatedRequest, res: Resp
 
     const userId = req.user.id;
 
-    const [myOpen, inProgress, resolved, closed, recentlyUpdated] = await Promise.all([
+    // BR-01: OPEN card = OPEN + REOPENED. In Progress = IN_PROGRESS only. Waiting = WAITING_FOR_REQUESTER.
+    const [myOpen, inProgress, waiting, resolved, closed, recentlyUpdated] = await Promise.all([
       prisma.ticket.count({
         where: {
           requesterUserId: userId,
-          currentStatus: { in: ['NEW', 'OPEN'] }
+          currentStatus: { in: ['OPEN', 'REOPENED'] }
         }
       }),
       prisma.ticket.count({
         where: {
           requesterUserId: userId,
-          currentStatus: { in: ['IN_PROGRESS', 'WAITING_FOR_REQUESTER'] }
+          currentStatus: 'IN_PROGRESS'
+        }
+      }),
+      prisma.ticket.count({
+        where: {
+          requesterUserId: userId,
+          currentStatus: 'WAITING_FOR_REQUESTER'
         }
       }),
       prisma.ticket.count({
@@ -56,6 +63,7 @@ export const getRequesterDashboard = async (req: AuthenticatedRequest, res: Resp
       metrics: {
         myOpen,
         inProgress,
+        waiting,
         resolved,
         closed
       },
@@ -77,16 +85,18 @@ export const getStaffDashboard = async (req: AuthenticatedRequest, res: Response
     const userId = req.user.id;
     const role = req.user.role;
 
+    // BR-01: OPEN card = OPEN + REOPENED (consistent with queue ?status=OPEN,REOPENED)
+    // BR-09: Urgent = HIGH or URGENT priority, excluding terminal states
     const [newCount, openCount, inProgressCount, waitingCount, myAssignedCount, urgentCount, recentTickets, totalUsers] = await Promise.all([
       prisma.ticket.count({ where: { currentStatus: 'NEW' } }),
-      prisma.ticket.count({ where: { currentStatus: 'OPEN' } }),
+      prisma.ticket.count({ where: { currentStatus: { in: ['OPEN', 'REOPENED'] } } }),
       prisma.ticket.count({ where: { currentStatus: 'IN_PROGRESS' } }),
       prisma.ticket.count({ where: { currentStatus: 'WAITING_FOR_REQUESTER' } }),
-      prisma.ticket.count({ 
-        where: { 
+      prisma.ticket.count({
+        where: {
           assignedStaffId: userId,
           currentStatus: { notIn: ['CLOSED', 'CANCELLED'] }
-        } 
+        }
       }),
       prisma.ticket.count({
         where: {

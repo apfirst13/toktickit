@@ -96,7 +96,8 @@ export function RequesterDashboard({ onNavigateToList, onViewTicket, onCreateTic
       <div className="row mb-4">
         <MetricCard title="My Open" count={metrics.myOpen} statuses="NEW,OPEN" color="primary" />
         <MetricCard title="In Progress" count={metrics.inProgress} statuses="IN_PROGRESS,WAITING_FOR_REQUESTER" color="warning" />
-        <MetricCard title="Resolved" count={metrics.resolved} statuses="RESOLVED" color="success" />
+                <MetricCard title="Action Needed" count={metrics.waiting} filters={{ status: 'WAITING_FOR_REQUESTER' }} color="warning" testId="metric-waiting" />
+<MetricCard title="Resolved" count={metrics.resolved} statuses="RESOLVED" color="success" />
         <MetricCard title="Closed" count={metrics.closed} statuses="CLOSED" color="secondary" />
       </div>
 

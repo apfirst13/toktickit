@@ -56,6 +56,12 @@ describe("Lab 4 - Staff Dashboard API", () => {
     
     // Urgent
     await prisma.ticket.create({ data: { ticketNumber: `SD6-${prefix}`, summary: "SD Urgent", requesterUserId: reqId, categoryId, relatedSystemId, currentStatus: "NEW", requestedPriority: "URGENT" } });
+    
+    // Edge cases for Urgent rule
+    await prisma.ticket.create({ data: { ticketNumber: `SD7-${prefix}`, summary: "SD Urgent IT", requesterUserId: reqId, categoryId, relatedSystemId, currentStatus: "OPEN", requestedPriority: "LOW", itPriority: "URGENT" } });
+    await prisma.ticket.create({ data: { ticketNumber: `SD8-${prefix}`, summary: "SD High Req", requesterUserId: reqId, categoryId, relatedSystemId, currentStatus: "IN_PROGRESS", requestedPriority: "HIGH" } });
+    await prisma.ticket.create({ data: { ticketNumber: `SD9-${prefix}`, summary: "SD Urgent Resolved", requesterUserId: reqId, categoryId, relatedSystemId, currentStatus: "RESOLVED", requestedPriority: "URGENT" } });
+    
   });
 
   afterAll(async () => {
@@ -71,11 +77,11 @@ describe("Lab 4 - Staff Dashboard API", () => {
     expect(res.status).toBe(200);
     expect(res.body.metrics).toBeDefined();
     expect(res.body.metrics.new).toBeGreaterThanOrEqual(2); // SD1 + SD6
-    expect(res.body.metrics.open).toBeGreaterThanOrEqual(1);
-    expect(res.body.metrics.inProgress).toBeGreaterThanOrEqual(2);
+    expect(res.body.metrics.open).toBeGreaterThanOrEqual(2);
+    expect(res.body.metrics.inProgress).toBeGreaterThanOrEqual(3);
     expect(res.body.metrics.waiting).toBeGreaterThanOrEqual(1);
     expect(res.body.metrics.myAssigned).toBeGreaterThanOrEqual(1);
-    expect(res.body.metrics.urgent).toBeGreaterThanOrEqual(1);
+    expect(res.body.metrics.urgent).toBeGreaterThanOrEqual(3);
     
     expect(res.body.recentlyUpdated).toBeInstanceOf(Array);
     

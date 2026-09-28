@@ -26,7 +26,7 @@ interface StaffDashboardData {
 }
 
 interface StaffDashboardProps {
-  onNavigateToQueue: (filters: { status?: string; owner?: string; reqPriority?: string }) => void;
+  onNavigateToQueue: (filters: { status?: string; owner?: string; reqPriority?: string; isUrgent?: boolean }) => void;
   onViewTicket: (id: number) => void;
   userRole: string;
 }
@@ -114,7 +114,7 @@ export function StaffDashboard({ onNavigateToQueue, onViewTicket, userRole }: St
         <MetricCard title="In Progress" count={metrics.inProgress} filters={{ status: 'IN_PROGRESS' }} color="warning" testId="metric-in-progress" />
         <MetricCard title="Waiting for Requester" count={metrics.waiting} filters={{ status: 'WAITING_FOR_REQUESTER' }} color="secondary" testId="metric-waiting" />
         <MetricCard title="My Assigned" count={metrics.myAssigned} filters={{ owner: 'me' }} color="success" testId="metric-my-assigned" />
-        <MetricCard title="Urgent Tickets" count={metrics.urgent} filters={{ reqPriority: 'URGENT,HIGH' }} color="danger" testId="metric-urgent" />
+        <MetricCard title="Urgent Tickets" count={metrics.urgent} filters={{ isUrgent: true }} color="danger" testId="metric-urgent" />
       </div>
 
       <div className="card shadow-sm">

@@ -22,7 +22,7 @@ export default function App() {
   const [view, setView] = useState<ViewState>("CREATE");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [ticketListFilter, setTicketListFilter] = useState<string>("");
-  const [staffQueueFilters, setStaffQueueFilters] = useState<{ status?: string; owner?: string; reqPriority?: string }>({});
+  const [staffQueueFilters, setStaffQueueFilters] = useState<{ status?: string; owner?: string; reqPriority?: string; isUrgent?: boolean }>({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");

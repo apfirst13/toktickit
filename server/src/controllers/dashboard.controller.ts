@@ -90,7 +90,10 @@ export const getStaffDashboard = async (req: AuthenticatedRequest, res: Response
       }),
       prisma.ticket.count({
         where: {
-          requestedPriority: { in: ['HIGH', 'URGENT'] },
+          OR: [
+            { requestedPriority: { in: ['HIGH', 'URGENT'] } },
+            { itPriority: { in: ['HIGH', 'URGENT'] } }
+          ],
           currentStatus: { notIn: ['RESOLVED', 'CLOSED', 'CANCELLED'] }
         }
       }),

@@ -47,7 +47,7 @@ describe('Lab 4 - Staff Dashboard', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ owner: 'me' });
 
     fireEvent.click(screen.getByTestId('metric-urgent'));
-    expect(mockNavigate).toHaveBeenCalledWith({ reqPriority: 'URGENT,HIGH' });
+    expect(mockNavigate).toHaveBeenCalledWith({ isUrgent: true });
     
     // Total users should not be shown for IT_STAFF
     expect(screen.queryByTestId('admin-stats')).not.toBeInTheDocument();

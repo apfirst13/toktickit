@@ -34,6 +34,7 @@ interface StaffTicketQueueProps {
     status?: string;
     owner?: string;
     reqPriority?: string;
+    isUrgent?: boolean;
   };
 }
 
@@ -86,6 +87,7 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
   const [reqPriorityFilter, setReqPriorityFilter] = useState(initialFilters?.reqPriority || "");
   const [itPriorityFilter, setItPriorityFilter] = useState("");
   const [ownerFilter, setOwnerFilter] = useState(initialFilters?.owner || ""); // "", "unassigned", "me", or staff id
+  const [isUrgentFilter, setIsUrgentFilter] = useState(initialFilters?.isUrgent || false);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
@@ -95,10 +97,11 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
       if (initialFilters.status !== undefined) setStatusFilter(initialFilters.status);
       if (initialFilters.owner !== undefined) setOwnerFilter(initialFilters.owner);
       if (initialFilters.reqPriority !== undefined) setReqPriorityFilter(initialFilters.reqPriority);
+      if (initialFilters.isUrgent !== undefined) setIsUrgentFilter(initialFilters.isUrgent);
     }
   }, [initialFilters]);
 
-  const hasActiveFilters = search || statusFilter || categoryFilter || reqPriorityFilter || itPriorityFilter || ownerFilter;
+  const hasActiveFilters = search || statusFilter || categoryFilter || reqPriorityFilter || itPriorityFilter || ownerFilter || isUrgentFilter;
 
   // Fetch categories for filter dropdown
   useEffect(() => {
@@ -149,12 +152,12 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
         setError(err.message);
         setLoading(false);
       });
-  }, [page, search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, sortBy, sortOrder, userId]);
+  }, [page, search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, isUrgentFilter, sortBy, sortOrder, userId]);
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, sortBy, sortOrder]);
+  }, [search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, isUrgentFilter, sortBy, sortOrder]);
 
   function clearFilters() {
     setSearch("");
@@ -188,6 +191,12 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
           </h4>
 
           {/* ── Toolbar / Filters ── */}
+          {isUrgentFilter && (
+            <div className="alert alert-danger py-2 d-flex justify-content-between align-items-center" data-testid="urgent-filter-alert">
+              <span><strong>Urgent Tickets Mode:</strong> Showing tickets with URGENT or HIGH priority (Requester or IT).</span>
+              <button className="btn btn-sm btn-outline-danger" onClick={() => setIsUrgentFilter(false)}>Clear Urgent Filter</button>
+            </div>
+          )}
           <div className="row g-2 mb-3" data-testid="queue-filters">
             {/* Search */}
             <div className="col-12 col-md-4">

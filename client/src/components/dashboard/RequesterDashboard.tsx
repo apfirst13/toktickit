@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 
+// BR-METRIC-01/02/03: Drill-down status strings must match backend constants.
+// If backend constants change, update these alongside them.
+const REQUESTER_MY_OPEN_STATUSES = "NEW,OPEN,REOPENED";       // BR-METRIC-01
+const REQUESTER_IN_PROGRESS_STATUSES = "IN_PROGRESS";          // BR-METRIC-02
+const REQUESTER_WAITING_STATUSES = "WAITING_FOR_REQUESTER";    // BR-METRIC-03
+
 interface Ticket {
   id: number;
   ticketNumber: string;
@@ -15,6 +21,7 @@ interface DashboardData {
   metrics: {
     myOpen: number;
     inProgress: number;
+    waiting: number;
     resolved: number;
     closed: number;
   };
@@ -66,15 +73,15 @@ export function RequesterDashboard({ onNavigateToList, onViewTicket, onCreateTic
 
   const { metrics, recentlyUpdated } = data;
 
-  const MetricCard = ({ title, count, statuses, color }: { title: string, count: number, statuses: string, color: string }) => (
+  const MetricCard = ({ title, count, statuses, color, testId }: { title: string, count: number, statuses: string, color: string, testId?: string }) => (
     <div className="col-sm-6 col-md-3 mb-3">
-      <div 
-        className={`card text-white bg-${color} h-100`} 
+      <div
+        className={`card text-white bg-${color} h-100`}
         style={{ cursor: "pointer", transition: "transform 0.2s" }}
         onClick={() => onNavigateToList(statuses)}
         onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
         onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-        data-testid={`metric-${title.replace(/\s+/g, '-').toLowerCase()}`}
+        data-testid={testId ?? `metric-${title.replace(/\s+/g, '-').toLowerCase()}`}
       >
         <div className="card-body text-center">
           <h5 className="card-title">{title}</h5>
@@ -94,8 +101,12 @@ export function RequesterDashboard({ onNavigateToList, onViewTicket, onCreateTic
       </div>
 
       <div className="row mb-4">
-        <MetricCard title="My Open" count={metrics.myOpen} statuses="NEW,OPEN" color="primary" />
-        <MetricCard title="In Progress" count={metrics.inProgress} statuses="IN_PROGRESS,WAITING_FOR_REQUESTER" color="warning" />
+        {/* BR-METRIC-01: My Open = NEW + OPEN + REOPENED */}
+        <MetricCard title="My Open" count={metrics.myOpen} statuses={REQUESTER_MY_OPEN_STATUSES} color="primary" />
+        {/* BR-METRIC-02: In Progress = IN_PROGRESS only */}
+        <MetricCard title="In Progress" count={metrics.inProgress} statuses={REQUESTER_IN_PROGRESS_STATUSES} color="warning" />
+        {/* BR-METRIC-03: Waiting for You = WAITING_FOR_REQUESTER */}
+        <MetricCard title="Waiting for You" count={metrics.waiting} statuses={REQUESTER_WAITING_STATUSES} color="danger" testId="metric-waiting" />
         <MetricCard title="Resolved" count={metrics.resolved} statuses="RESOLVED" color="success" />
         <MetricCard title="Closed" count={metrics.closed} statuses="CLOSED" color="secondary" />
       </div>
@@ -125,9 +136,9 @@ export function RequesterDashboard({ onNavigateToList, onViewTicket, onCreateTic
                 </thead>
                 <tbody>
                   {recentlyUpdated.map((t) => (
-                    <tr 
-                      key={t.id} 
-                      onClick={() => onViewTicket(t.id)} 
+                    <tr
+                      key={t.id}
+                      onClick={() => onViewTicket(t.id)}
                       style={{ cursor: "pointer" }}
                       data-testid={`recent-ticket-${t.id}`}
                     >

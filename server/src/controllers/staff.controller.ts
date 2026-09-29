@@ -1,3 +1,4 @@
+import { buildTicketWhereClause } from '../utils/ticket-query.util.js';
 import { Response } from 'express';
 import { prisma } from '../prisma.js';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
@@ -14,52 +15,30 @@ export const getQueue = async (req: AuthenticatedRequest, res: Response): Promis
     const validSortBy = sortFields.includes(sortBy as string) ? (sortBy as string) : 'createdAt';
     const validSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
 
-    const where: any = {};
+    // BR-08: assignedTo=me resolves to logged-in staff user ID
+    const resolvedAssignedTo = assignedTo === 'me'
+      ? req.user?.id
+      : assignedTo === 'unassigned'
+        ? 'unassigned'
+        : assignedTo && !isNaN(Number(assignedTo)) ? Number(assignedTo) : undefined;
 
-    if (search) {
-      where.OR = [
-        { ticketNumber: { contains: search as string, mode: 'insensitive' } },
-        { summary: { contains: search as string, mode: 'insensitive' } }
-      ];
-    }
-
-    if (category) where.category = { name: { equals: category as string, mode: 'insensitive' } };
-    if (status) {
-      if ((status as string).includes(',')) {
-        where.currentStatus = { in: (status as string).split(',') };
-      } else {
-        where.currentStatus = status;
+    let where: any;
+    try {
+      where = buildTicketWhereClause({
+        search: search as string,
+        categoryName: category as string,
+        status: status as string,
+        isUrgent: isUrgent === 'true',
+        requestedPriority: requestedPriority as string,
+        itPriority: itPriority as string,
+        assignedStaffId: resolvedAssignedTo as any,
+      });
+    } catch (e: any) {
+      if (e.message === 'INVALID_STATUS_FILTER') {
+        res.status(400).json({ error: 'Invalid status filter' });
+        return;
       }
-    }
-    if (isUrgent === 'true') {
-      const urgentOr = [
-        { requestedPriority: { in: ['HIGH', 'URGENT'] } },
-        { itPriority: { in: ['HIGH', 'URGENT'] } }
-      ];
-      if (where.OR) {
-        where.AND = [
-          { OR: where.OR },
-          { OR: urgentOr }
-        ];
-        delete where.OR;
-      } else {
-        where.OR = urgentOr;
-      }
-    } else {
-      if (requestedPriority) {
-        if ((requestedPriority as string).includes(',')) {
-          where.requestedPriority = { in: (requestedPriority as string).split(',') };
-        } else {
-          where.requestedPriority = requestedPriority;
-        }
-      }
-      if (itPriority) where.itPriority = itPriority;
-    }
-
-    if (assignedTo === 'unassigned') {
-      where.assignedStaffId = null;
-    } else if (assignedTo && !isNaN(Number(assignedTo))) {
-      where.assignedStaffId = Number(assignedTo);
+      throw e;
     }
 
     const total = await prisma.ticket.count({ where });
@@ -110,6 +89,7 @@ export const getQueue = async (req: AuthenticatedRequest, res: Response): Promis
     res.status(500).json({ error: 'Failed to fetch queue' });
   }
 };
+
 export const getActiveStaff = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
@@ -181,25 +161,39 @@ export const updateTicket = async (req: AuthenticatedRequest, res: Response): Pr
 
       const allowed = allowedTransitions[current] || [];
       if (!allowed.includes(target)) {
-          return res.status(400).json({ error: `Invalid status transition from ${current} to ${target}` });
-        }
+        return res.status(400).json({ error: `Invalid status transition from ${current} to ${target}` });
+      }
 
-        if (target === 'RESOLVED') {
-          const actionCount = await prisma.actionTaken.count({
-            where: { ticketId }
-          });
-          if (actionCount === 0) {
-            return res.status(400).json({ error: 'Cannot transition to RESOLVED: At least one Action Taken is required' });
-          }
+      if (target === 'RESOLVED') {
+        const actionCount = await prisma.actionTaken.count({
+          where: { ticketId }
+        });
+        if (actionCount === 0) {
+          return res.status(400).json({ error: 'Cannot transition to RESOLVED: At least one Action Taken is required' });
         }
+      }
 
-        updates.currentStatus = target;
+      updates.currentStatus = target;
     }
 
-    const updatedTicket = await prisma.ticket.update({
-      where: { id: ticketId },
+    // BR-10: Optimistic locking — expectedStatus is optional. If omitted, use current DB status (no stale check).
+    // If provided, compare strictly and return 409 if mismatch.
+    const expectedStatus = req.body.expectedStatus;
+    const expected = expectedStatus || ticket.currentStatus;
+
+    const updateResult = await prisma.ticket.updateMany({
+      where: {
+        id: ticketId,
+        currentStatus: expected
+      },
       data: updates
     });
+
+    if (updateResult.count === 0) {
+      return res.status(409).json({ error: 'Conflict: Ticket status has changed since you last viewed it. Please refresh.' });
+    }
+
+    const updatedTicket = await prisma.ticket.findUnique({ where: { id: ticketId } });
 
     return res.status(200).json(updatedTicket);
   } catch (error) {
@@ -207,4 +201,3 @@ export const updateTicket = async (req: AuthenticatedRequest, res: Response): Pr
     return res.status(500).json({ error: 'Failed to update ticket' });
   }
 };
-

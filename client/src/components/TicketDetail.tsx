@@ -118,6 +118,7 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
   const [editItPriority, setEditItPriority] = useState("");
   const [editAssignedTo, setEditAssignedTo] = useState<string>("");
   const [savingMeta, setSavingMeta] = useState(false);
+  const [staleToast, setStaleToast] = useState<string | null>(null);
 
   useEffect(() => {
     loadTicket();
@@ -172,10 +173,13 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
 
   const handleSaveMeta = async () => {
     setSavingMeta(true);
+    setStaleToast(null);
     try {
       const payload: any = {
         itPriority: editItPriority,
-        assignedStaffId: editAssignedTo === "unassigned" ? null : Number(editAssignedTo)
+        assignedStaffId: editAssignedTo === "unassigned" ? null : Number(editAssignedTo),
+        // BR-10: always send expectedStatus so server can detect stale updates
+        expectedStatus: ticket?.currentStatus
       };
       if (editStatus !== ticket?.currentStatus) {
         payload.status = editStatus;
@@ -189,6 +193,14 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
         },
         body: JSON.stringify(payload)
       });
+
+      if (res.status === 409) {
+        // BR-10: Stale update — show alert, refetch fresh status, but DO NOT clear user input
+        setStaleToast("ตั๋วนี้ถูกเปลี่ยนสถานะโดยผู้ใช้อื่น — กำลังโหลดสถานะล่าสุด...");
+        loadTicket(); // refetch to show fresh status; editStatus/notes/comments not cleared
+        return;
+      }
+
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || "Failed to update");
@@ -553,6 +565,21 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
                 >
                   {savingMeta ? "Saving..." : "Save Changes"}
                 </button>
+                {staleToast && (
+                  <div
+                    className="alert alert-warning alert-dismissible mt-2 py-2 px-3 small"
+                    role="alert"
+                    data-testid="stale-toast"
+                  >
+                    ⚠️ {staleToast}
+                    <button
+                      type="button"
+                      className="btn-close"
+                      aria-label="Close"
+                      onClick={() => setStaleToast(null)}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

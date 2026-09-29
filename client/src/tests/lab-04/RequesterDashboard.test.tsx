@@ -21,7 +21,7 @@ describe('Lab 4 - Requester Dashboard', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        metrics: { myOpen: 5, inProgress: 2, resolved: 1, closed: 10 },
+        metrics: { myOpen: 5, inProgress: 2, waiting: 1, resolved: 1, closed: 10 },
         recentlyUpdated: [
           {
             id: 1,
@@ -49,9 +49,9 @@ describe('Lab 4 - Requester Dashboard', () => {
     expect(screen.getByTestId('metric-my-open')).toHaveTextContent('5');
     expect(screen.getByTestId('metric-in-progress')).toHaveTextContent('2');
     
-    // Check click navigation
+    // BR-METRIC-01: My Open drill-down must use NEW,OPEN,REOPENED
     fireEvent.click(screen.getByTestId('metric-my-open'));
-    expect(mockNavigate).toHaveBeenCalledWith('NEW,OPEN');
+    expect(mockNavigate).toHaveBeenCalledWith('NEW,OPEN,REOPENED');
 
     // Check recent tickets list
     expect(screen.getByTestId('recent-ticket-1')).toBeInTheDocument();

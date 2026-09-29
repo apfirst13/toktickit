@@ -1,6 +1,14 @@
 import { Response } from 'express';
 import { prisma } from '../prisma.js';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
+import {
+  REQUESTER_MY_OPEN_STATUSES,
+  REQUESTER_IN_PROGRESS_STATUSES,
+  REQUESTER_WAITING_STATUSES,
+  STAFF_OPEN_STATUSES,
+  STAFF_IN_PROGRESS_STATUSES,
+  STAFF_WAITING_STATUSES,
+} from '../utils/ticket-query.util.js';
 
 export const getRequesterDashboard = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -11,24 +19,24 @@ export const getRequesterDashboard = async (req: AuthenticatedRequest, res: Resp
 
     const userId = req.user.id;
 
-    // BR-01: OPEN card = OPEN + REOPENED. In Progress = IN_PROGRESS only. Waiting = WAITING_FOR_REQUESTER.
+    // BR-METRIC-01/02/03: Use exported constants — single source of truth
     const [myOpen, inProgress, waiting, resolved, closed, recentlyUpdated] = await Promise.all([
       prisma.ticket.count({
         where: {
           requesterUserId: userId,
-          currentStatus: { in: ['OPEN', 'REOPENED'] }
+          currentStatus: { in: [...REQUESTER_MY_OPEN_STATUSES] }
         }
       }),
       prisma.ticket.count({
         where: {
           requesterUserId: userId,
-          currentStatus: 'IN_PROGRESS'
+          currentStatus: { in: [...REQUESTER_IN_PROGRESS_STATUSES] }
         }
       }),
       prisma.ticket.count({
         where: {
           requesterUserId: userId,
-          currentStatus: 'WAITING_FOR_REQUESTER'
+          currentStatus: { in: [...REQUESTER_WAITING_STATUSES] }
         }
       }),
       prisma.ticket.count({
@@ -85,13 +93,13 @@ export const getStaffDashboard = async (req: AuthenticatedRequest, res: Response
     const userId = req.user.id;
     const role = req.user.role;
 
-    // BR-01: OPEN card = OPEN + REOPENED (consistent with queue ?status=OPEN,REOPENED)
+    // BR-METRIC-04/05/06: Use exported constants — single source of truth
     // BR-09: Urgent = HIGH or URGENT priority, excluding terminal states
     const [newCount, openCount, inProgressCount, waitingCount, myAssignedCount, urgentCount, recentTickets, totalUsers] = await Promise.all([
       prisma.ticket.count({ where: { currentStatus: 'NEW' } }),
-      prisma.ticket.count({ where: { currentStatus: { in: ['OPEN', 'REOPENED'] } } }),
-      prisma.ticket.count({ where: { currentStatus: 'IN_PROGRESS' } }),
-      prisma.ticket.count({ where: { currentStatus: 'WAITING_FOR_REQUESTER' } }),
+      prisma.ticket.count({ where: { currentStatus: { in: [...STAFF_OPEN_STATUSES] } } }),
+      prisma.ticket.count({ where: { currentStatus: { in: [...STAFF_IN_PROGRESS_STATUSES] } } }),
+      prisma.ticket.count({ where: { currentStatus: { in: [...STAFF_WAITING_STATUSES] } } }),
       prisma.ticket.count({
         where: {
           assignedStaffId: userId,

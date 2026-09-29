@@ -33,16 +33,17 @@
 ## 4. Dashboard Metric Definitions
 
 ### Requester Dashboard
-- **My Open**: Tickets created by the user with status `NEW` or `OPEN`.
-- **In Progress**: Tickets created by the user with status `IN_PROGRESS` or `WAITING_FOR_REQUESTER`.
+- **My Open**: Tickets created by the user with status `NEW`, `OPEN`, or `REOPENED`. *Justification: REOPENED tickets are tickets the requester disagreed with, so they still require active attention — grouped with open work.*
+- **In Progress**: Tickets created by the user with status `IN_PROGRESS` only. *(Distinct from Waiting — staff is actively working.)*
+- **Waiting for You**: Tickets created by the user with status `WAITING_FOR_REQUESTER`. *(Displayed as a separate card — requires action from the requester specifically.)*
 - **Resolved**: Tickets created by the user with status `RESOLVED`.
 - **Closed**: Tickets created by the user with status `CLOSED`.
 - **Recently Updated**: Tickets created by the user where `updatedAt` is within the last 7 days. *Justification*: 7 days is a standard operational window for users to track recent activities without overwhelming the view.
 
 ### IT Staff / Administrator Dashboard
 - **New**: All tickets with status `NEW`.
-- **Open**: All tickets with status `OPEN`.
-- **In Progress**: All tickets with status `IN_PROGRESS`.
+- **Open**: All tickets with status `OPEN` or `REOPENED`. *Justification: REOPENED tickets re-enter the active queue and must be visible to IT Staff alongside newly-opened tickets.*
+- **In Progress**: All tickets with status `IN_PROGRESS` only.
 - **Waiting for Requester**: All tickets with status `WAITING_FOR_REQUESTER`.
 - **My Assigned**: Tickets where `assignedStaffId` matches the current user's ID, regardless of status (excluding `CLOSED` and `CANCELLED`).
 - **Urgent Tickets**: Tickets with `requestedPriority` or `itPriority` as `URGENT` or `HIGH` that are not `RESOLVED`, `CLOSED`, or `CANCELLED`.

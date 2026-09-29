@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+// BR-METRIC-04: Staff Open = OPEN + REOPENED
+const STAFF_OPEN_STATUSES = "OPEN,REOPENED";
+
 interface Ticket {
   id: number;
   ticketNumber: string;
@@ -110,7 +113,7 @@ export function StaffDashboard({ onNavigateToQueue, onViewTicket, userRole }: St
 
       <div className="row mb-4">
         <MetricCard title="New Tickets" count={metrics.new} filters={{ status: 'NEW' }} color="info" testId="metric-new" />
-        <MetricCard title="Open Tickets" count={metrics.open} filters={{ status: 'OPEN' }} color="primary" testId="metric-open" />
+        <MetricCard title="Open Tickets" count={metrics.open} filters={{ status: STAFF_OPEN_STATUSES }} color="primary" testId="metric-open" />
         <MetricCard title="In Progress" count={metrics.inProgress} filters={{ status: 'IN_PROGRESS' }} color="warning" testId="metric-in-progress" />
         <MetricCard title="Waiting for Requester" count={metrics.waiting} filters={{ status: 'WAITING_FOR_REQUESTER' }} color="secondary" testId="metric-waiting" />
         <MetricCard title="My Assigned" count={metrics.myAssigned} filters={{ owner: 'me' }} color="success" testId="metric-my-assigned" />

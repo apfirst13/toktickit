@@ -43,6 +43,10 @@ describe('Lab 4 - Staff Dashboard', () => {
     fireEvent.click(screen.getByTestId('metric-new'));
     expect(mockNavigate).toHaveBeenCalledWith({ status: 'NEW' });
 
+    // Ensure Open card uses the correct multi-status string
+    fireEvent.click(screen.getByTestId('metric-open'));
+    expect(mockNavigate).toHaveBeenCalledWith({ status: 'OPEN,REOPENED' });
+
     fireEvent.click(screen.getByTestId('metric-my-assigned'));
     expect(mockNavigate).toHaveBeenCalledWith({ owner: 'me' });
 

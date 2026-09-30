@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { StatusBadge } from "../common/Badges";
 // BR-METRIC-01/02/03: Drill-down status strings must match backend constants.
 // If backend constants change, update these alongside them.
 const REQUESTER_MY_OPEN_STATUSES = "NEW,OPEN,REOPENED";       // BR-METRIC-01
@@ -148,9 +148,7 @@ export function RequesterDashboard({ onNavigateToList, onViewTicket, onCreateTic
                       </td>
                       <td>{t.category?.name}</td>
                       <td>
-                        <span className={`badge bg-${t.currentStatus === 'NEW' ? 'info' : t.currentStatus === 'RESOLVED' ? 'success' : 'secondary'}`}>
-                          {t.currentStatus}
-                        </span>
+                        <StatusBadge status={t.currentStatus} />
                       </td>
                       <td>{new Date(t.updatedAt).toLocaleDateString()}</td>
                     </tr>

@@ -130,11 +130,11 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
           />
         )}
 
-        {actions.length === 0 && !isCreating ? (
+        {(!Array.isArray(actions) || actions.length === 0) && !isCreating ? (
           <p className="text-muted small mb-0">No actions have been taken yet.</p>
         ) : (
           <div className="mt-3">
-            {actions.map(action => (
+            {Array.isArray(actions) && actions.map(action => (
               <div key={action.id} className="mb-3 border-start border-4 ps-3 pb-3 border-bottom" style={{ borderColor: `${ZEN} !important` }}>
                 {editingId === action.id ? (
                   <ActionTakenForm 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { StatusBadge } from "./common/Badges";
 interface Ticket {
   id: number;
   ticketNumber: string;
@@ -178,9 +178,7 @@ export function MyTickets({ requesterId, onViewTicket, initialStatus = "" }: MyT
                         <td className="fw-bold">{t.ticketNumber}</td>
                         <td>{t.summary}</td>
                         <td>
-                          <span className={`badge bg-${t.currentStatus === 'New' ? 'info' : 'secondary'}`}>
-                            {t.currentStatus}
-                          </span>
+                          <StatusBadge status={t.currentStatus} />
                         </td>
                         <td>{new Date(t.createdAt).toLocaleDateString()}</td>
                         <td>

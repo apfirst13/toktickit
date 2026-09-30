@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { StatusBadge, PriorityBadge } from "./common/Badges";
 /* ─── Types ─── */
 interface QueueTicket {
   id: number;
@@ -356,19 +356,13 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
                           <td>{t.summary}</td>
                           <td>{t.category?.name || "—"}</td>
                           <td>
-                            <span className={`badge ${PRIORITY_BADGE[t.requestedPriority] || "bg-secondary"}`}>
-                              {t.requestedPriority}
-                            </span>
+                            <PriorityBadge priority={t.requestedPriority} />
                           </td>
                           <td>
-                            <span className={`badge ${PRIORITY_BADGE[t.itPriority || ""] || "bg-secondary"}`}>
-                              {t.itPriority || "—"}
-                            </span>
+                            {t.itPriority ? <PriorityBadge priority={t.itPriority} /> : "—"}
                           </td>
                           <td>
-                            <span className={`badge ${STATUS_BADGE[t.currentStatus] || "bg-secondary"}`}>
-                              {formatStatus(t.currentStatus)}
-                            </span>
+                            <StatusBadge status={t.currentStatus} />
                           </td>
                           <td>{t.assignedStaff?.fullName || <span className="text-muted fst-italic">Unassigned</span>}</td>
                           <td>
@@ -405,18 +399,12 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
                           <span className="fw-bold" style={{ color: ZEN }}>{t.ticketNumber}</span>
                           <span className="text-muted small ms-2">{new Date(t.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <span className={`badge ${STATUS_BADGE[t.currentStatus] || "bg-secondary"}`}>
-                          {formatStatus(t.currentStatus)}
-                        </span>
+                        <StatusBadge status={t.currentStatus} />
                       </div>
                       <p className="mb-2 fw-semibold">{t.summary}</p>
                       <div className="d-flex flex-wrap gap-2 mb-2">
-                        <span className={`badge ${PRIORITY_BADGE[t.requestedPriority] || "bg-secondary"}`}>
-                          Req: {t.requestedPriority}
-                        </span>
-                        <span className={`badge ${PRIORITY_BADGE[t.itPriority || ""] || "bg-secondary"}`}>
-                          IT: {t.itPriority || "—"}
-                        </span>
+                        <PriorityBadge priority={t.requestedPriority} />
+                        {t.itPriority && <PriorityBadge priority={t.itPriority} />}
                         {t.category && <span className="badge bg-light text-dark border">{t.category.name}</span>}
                       </div>
                       <div className="d-flex justify-content-between align-items-center">

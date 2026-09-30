@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { StatusBadge, PriorityBadge } from "../common/Badges";
 
 // BR-METRIC-04: Staff Open = OPEN + REOPENED
 const STAFF_OPEN_STATUSES = "OPEN,REOPENED";
@@ -155,14 +156,10 @@ export function StaffDashboard({ onNavigateToQueue, onViewTicket, userRole }: St
                       </td>
                       <td>{t.category?.name}</td>
                       <td>
-                        <span className={`badge bg-${t.currentStatus === 'NEW' ? 'info' : t.currentStatus === 'IN_PROGRESS' ? 'warning text-dark' : 'secondary'}`}>
-                          {t.currentStatus}
-                        </span>
+                        <StatusBadge status={t.currentStatus} />
                       </td>
                       <td>
-                        <span className={`badge bg-${t.requestedPriority === 'URGENT' ? 'danger' : t.requestedPriority === 'HIGH' ? 'warning text-dark' : 'secondary'}`}>
-                          {t.requestedPriority}
-                        </span>
+                        <PriorityBadge priority={t.requestedPriority} />
                       </td>
                       <td>{new Date(t.updatedAt).toLocaleDateString()}</td>
                     </tr>

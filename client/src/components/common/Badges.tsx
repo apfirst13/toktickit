@@ -53,13 +53,15 @@ export const PriorityBadge = ({ priority }: { priority: string }) => {
   let icon = 'flag';
   let accessibleText = `Priority: ${priority}`;
 
-  switch (priority) {
+  const normalizedPriority = priority?.toUpperCase() || '';
+
+  switch (normalizedPriority) {
     case 'LOW':
       color = 'success';
       icon = 'arrow-down-short';
       break;
-    case 'NORMAL':
-      color = 'secondary';
+    case 'MEDIUM':
+      color = 'info';
       icon = 'dash';
       break;
     case 'HIGH':

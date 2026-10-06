@@ -42,34 +42,34 @@ Added as a new tab or distinct visual section within the existing Ticket Detail 
 *Showing the Staff Dashboard metrics and the filtered ticket list.*
 
 **Desktop View:**
-![Staff Dashboard - Desktop](path/to/staff-desktop.png)
+![Staff Dashboard - Desktop](images/staff-desktop.png)
 
 **Tablet View:**
-![Staff Dashboard - Tablet](path/to/staff-tablet.png)
+![Staff Dashboard - Tablet](images/staff-tablet.png)
 
 **Mobile View:**
-![Staff Dashboard - Mobile](path/to/staff-mobile.png)
+![Staff Dashboard - Mobile](images/staff-mobile.png)
 
 ### 5.2 Requester Dashboard & My Tickets
 *Showing the Requester Dashboard metrics and the "My Tickets" list.*
 
 **Desktop View:**
-![Requester Dashboard - Desktop](path/to/requester-desktop.png)
+![Requester Dashboard - Desktop](images/requester-desktop.png)
 
 **Tablet View:**
-![Requester Dashboard - Tablet](path/to/requester-tablet.png)
+![Requester Dashboard - Tablet](images/requester-tablet.png)
 
 **Mobile View:**
-![Requester Dashboard - Mobile](path/to/requester-mobile.png)
+![Requester Dashboard - Mobile](images/requester-mobile.png)
 
 ### 5.3 Ticket Detail & Actions Taken
 *Showing the Ticket Detail view with the new Actions Taken section, including the "Follow-up Required" state.*
 
 **Desktop View:**
-![Actions Taken - Desktop](path/to/actions-desktop.png)
+![Actions Taken - Desktop](images/actions-desktop.png)
 
 **Tablet View:**
-![Actions Taken - Tablet](path/to/actions-tablet.png)
+![Actions Taken - Tablet](images/actions-tablet.png)
 
 **Mobile View:**
-![Actions Taken - Mobile](path/to/actions-mobile.png)
+![Actions Taken - Mobile](images/actions-mobile.png)

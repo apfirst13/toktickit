@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -46,6 +46,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
     initialPassword: ""
   });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -113,6 +114,8 @@ export function UserManagement({ currentUser }: UserManagementProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     setFormError(null);
 
@@ -172,6 +175,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
     } catch (err: any) {
       setFormError(err.message);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };

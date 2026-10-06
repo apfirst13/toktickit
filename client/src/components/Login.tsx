@@ -121,8 +121,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
             {error && <div className="alert alert-danger py-2" data-testid="change-password-error">{error}</div>}
             <form onSubmit={handleChangePassword} data-testid="change-password-form">
               <div className="mb-3">
-                <label className="form-label fw-semibold">New Password</label>
+                <label htmlFor="newPassword" className="form-label fw-semibold">New Password</label>
                 <input
+                  id="newPassword"
                   type="password"
                   className="form-control"
                   value={newPassword}
@@ -153,8 +154,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
               </div>
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">Confirm New Password</label>
+                <label htmlFor="confirmPassword" className="form-label fw-semibold">Confirm New Password</label>
                 <input
+                  id="confirmPassword"
                   type="password"
                   className="form-control"
                   value={confirmPassword}
@@ -203,8 +205,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
           {error && <div className="alert alert-danger py-2">{error}</div>}
           <form onSubmit={handleLogin}>
             <div className="mb-3">
-              <label className="form-label text-muted fw-semibold">Email</label>
+              <label htmlFor="email" className="form-label text-muted fw-semibold">Email</label>
               <input
+                id="email"
                 type="email"
                 className="form-control"
                 value={email}
@@ -213,8 +216,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
               />
             </div>
             <div className="mb-4">
-              <label className="form-label text-muted fw-semibold">Password</label>
+              <label htmlFor="password" className="form-label text-muted fw-semibold">Password</label>
               <input
+                id="password"
                 type="password"
                 className="form-control"
                 value={password}

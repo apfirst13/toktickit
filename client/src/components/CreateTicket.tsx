@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Category {
   id: number;
@@ -45,6 +45,7 @@ export function CreateTicket({ requesterName, onSuccess }: CreateTicketProps) {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [successTicket, setSuccessTicket] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -94,12 +95,15 @@ export function CreateTicket({ requesterName, onSuccess }: CreateTicketProps) {
    */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitError(null);
     setSuccessTicket(null);
 
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
+      submittingRef.current = false;
       return;
     }
     setErrors({});
@@ -137,6 +141,7 @@ export function CreateTicket({ requesterName, onSuccess }: CreateTicketProps) {
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }

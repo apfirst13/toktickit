@@ -120,8 +120,9 @@ export function MyTickets({ requesterId, onViewTicket, initialStatus = "" }: MyT
                 data-testid="status-filter"
               >
                 <option value="">All Statuses</option>
-                <option value="NEW,OPEN">My Open</option>
-                <option value="IN_PROGRESS,WAITING_FOR_REQUESTER">In Progress</option>
+                <option value="NEW,OPEN,REOPENED">My Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="WAITING_FOR_REQUESTER">Waiting for You</option>
                 <option value="RESOLVED">Resolved</option>
                 <option value="CLOSED">Closed</option>
               </select>

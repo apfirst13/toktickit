@@ -1,5 +1,10 @@
 import React from 'react';
 
+function formatText(s: string): string {
+  if (!s) return "";
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export const StatusBadge = ({ status }: { status: string }) => {
   let color = 'secondary';
   let icon = 'circle';
@@ -43,7 +48,7 @@ export const StatusBadge = ({ status }: { status: string }) => {
   return (
     <span className={`badge bg-${color}`} aria-label={accessibleText} title={accessibleText}>
       <i className={`bi bi-${icon} me-1`} aria-hidden="true"></i>
-      {status}
+      {formatText(status)}
     </span>
   );
 };
@@ -77,7 +82,7 @@ export const PriorityBadge = ({ priority }: { priority: string }) => {
   return (
     <span className={`badge bg-${color}`} aria-label={accessibleText} title={accessibleText}>
       <i className={`bi bi-${icon} me-1`} aria-hidden="true"></i>
-      {priority}
+      {formatText(priority)}
     </span>
   );
 };

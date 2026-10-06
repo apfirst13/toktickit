@@ -214,6 +214,7 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
             <div className="col-6 col-md-2">
               <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} data-testid="queue-status-filter">
                 <option value="">All Status</option>
+                <option value="OPEN,REOPENED">Open & Reopened</option>
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>{formatStatus(s)}</option>
                 ))}

@@ -331,8 +331,9 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                   {(modalMode === "CREATE" || modalMode === "EDIT") && (
                     <>
                       <div className="mb-3">
-                        <label className="form-label">Email address</label>
+                        <label htmlFor="umEmail" className="form-label">Email address</label>
                         <input
+                          id="umEmail"
                           type="email"
                           className="form-control"
                           required
@@ -342,8 +343,9 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Full Name</label>
+                        <label htmlFor="umFullName" className="form-label">Full Name</label>
                         <input
+                          id="umFullName"
                           type="text"
                           className="form-control"
                           required
@@ -353,8 +355,9 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Role</label>
+                        <label htmlFor="umRole" className="form-label">Role</label>
                         <select
+                          id="umRole"
                           className="form-select"
                           value={formData.role}
                           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -386,9 +389,10 @@ export function UserManagement({ currentUser }: UserManagementProps) {
 
                   {(modalMode === "CREATE" || modalMode === "RESET") && (
                     <div className="mb-3">
-                      <label className="form-label">Temporary Password</label>
+                      <label htmlFor="umTempPassword" className="form-label">Temporary Password</label>
                       <div className="input-group">
                         <input
+                          id="umTempPassword"
                           type="text"
                           className="form-control"
                           required

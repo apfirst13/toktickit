@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { StatusBadge } from "./common/Badges";
 interface Ticket {
   id: number;
   ticketNumber: string;
@@ -120,8 +120,9 @@ export function MyTickets({ requesterId, onViewTicket, initialStatus = "" }: MyT
                 data-testid="status-filter"
               >
                 <option value="">All Statuses</option>
-                <option value="NEW,OPEN">My Open</option>
-                <option value="IN_PROGRESS,WAITING_FOR_REQUESTER">In Progress</option>
+                <option value="NEW,OPEN,REOPENED">My Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="WAITING_FOR_REQUESTER">Waiting for You</option>
                 <option value="RESOLVED">Resolved</option>
                 <option value="CLOSED">Closed</option>
               </select>
@@ -178,9 +179,7 @@ export function MyTickets({ requesterId, onViewTicket, initialStatus = "" }: MyT
                         <td className="fw-bold">{t.ticketNumber}</td>
                         <td>{t.summary}</td>
                         <td>
-                          <span className={`badge bg-${t.currentStatus === 'New' ? 'info' : 'secondary'}`}>
-                            {t.currentStatus}
-                          </span>
+                          <StatusBadge status={t.currentStatus} />
                         </td>
                         <td>{new Date(t.createdAt).toLocaleDateString()}</td>
                         <td>

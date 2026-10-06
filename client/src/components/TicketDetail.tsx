@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { StatusBadge, PriorityBadge } from "./common/Badges";
 import { ActionsTakenList } from "./tickets/ActionsTakenList";
 
 interface UserInfo {
@@ -500,17 +501,12 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
             </div>
             
             {!isStaff ? (
-              <div className="d-flex gap-2">
-                <span className={`badge fs-6 bg-${statusBadge(ticket.currentStatus)}`}>
-                  {ticket.currentStatus}
-                </span>
-                <span className={`badge fs-6 bg-${priorityBadge(ticket.requestedPriority)}`}>
-                  Req: {ticket.requestedPriority}
-                </span>
-                <span className={`badge fs-6 bg-${priorityBadge(ticket.itPriority || ticket.requestedPriority)}`}>
-                  IT: {ticket.itPriority || "Unset"}
-                </span>
+              <div className="d-flex gap-2 align-items-center">
+                <StatusBadge status={ticket.currentStatus} />
+                <PriorityBadge priority={ticket.requestedPriority} />
+                <PriorityBadge priority={ticket.itPriority || ticket.requestedPriority} />
                 <span className="badge bg-info text-dark fs-6">
+                  <i className="bi bi-person-badge me-1" aria-hidden="true"></i>
                   {ticket.assignedStaff ? ticket.assignedStaff.fullName : "Unassigned"}
                 </span>
               </div>

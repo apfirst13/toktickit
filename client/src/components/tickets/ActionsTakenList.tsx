@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ActionTakenForm, ActionTakenPayload } from './ActionTakenForm';
 
 export interface ActionTaken {
@@ -32,6 +32,7 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const canEdit = userRole === 'IT_STAFF' || userRole === 'ADMINISTRATOR';
   const getToken = () => localStorage.getItem("token") || "";
@@ -60,6 +61,8 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
   }, [ticketId]);
 
   const handleCreate = async (payload: ActionTakenPayload) => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
       const res = await fetch(`/api/tickets/${ticketId}/actions`, {
@@ -79,11 +82,14 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
     } catch (err: any) {
       throw err; // Let the form handle the error display
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
 
   const handleUpdate = async (actionId: number, payload: ActionTakenPayload) => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
       const res = await fetch(`/api/tickets/${ticketId}/actions/${actionId}`, {
@@ -103,6 +109,7 @@ export const ActionsTakenList = ({ ticketId, userRole }: ActionsTakenListProps) 
     } catch (err: any) {
       throw err;
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };

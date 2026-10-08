@@ -77,16 +77,16 @@ export function StaffDashboard({ onNavigateToQueue, onViewTicket, userRole }: St
   const MetricCard = ({ title, count, filters, color, testId }: { title: string, count: number, filters: any, color: string, testId: string }) => (
     <div className="col-sm-6 col-md-4 mb-3">
       <div 
-        className={`card text-white bg-${color} h-100`} 
-        style={{ cursor: "pointer", transition: "transform 0.2s" }}
+        className={`card h-100 shadow-sm border-0 border-start border-${color}`} 
+        style={{ cursor: "pointer", transition: "transform 0.2s", borderLeftWidth: "5px" }}
         onClick={() => onNavigateToQueue(filters)}
         onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
         onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
         data-testid={testId}
       >
         <div className="card-body text-center">
-          <h5 className="card-title">{title}</h5>
-          <h2 className="display-4 fw-bold mb-0">{count}</h2>
+          <h5 className="card-title text-muted">{title}</h5>
+          <h2 className="display-4 fw-bold text-dark mb-0">{count}</h2>
         </div>
       </div>
     </div>

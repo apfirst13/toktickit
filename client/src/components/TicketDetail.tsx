@@ -433,11 +433,8 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
               <div className="modal-body">
                 <p>Are you sure you want to remove this attachment?</p>
                 <div className="mb-3">
-                  <label className="form-label">Removal Reason (Required)</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={removalReason}
+                  <label htmlFor="tdRemovalReason" className="form-label">Removal Reason (Required)</label>
+                  <input id="tdRemovalReason" type="text" className="form-control" value={removalReason}
                     onChange={(e) => setRemovalReason(e.target.value)}
                     data-testid="removal-reason-input"
                   />

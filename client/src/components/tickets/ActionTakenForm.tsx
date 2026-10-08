@@ -70,18 +70,18 @@ export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting 
       {error && <div className="alert alert-danger py-2 small">{error}</div>}
       
       <div className="mb-2">
-        <label className="form-label small fw-bold">Date & Time</label>
-        <input type="datetime-local" className="form-control form-control-sm" value={actionDateTime} onChange={(e) => setActionDateTime(e.target.value)} disabled={isSubmitting} />
+        <label htmlFor="atDateTime" className="form-label small fw-bold">Date & Time</label>
+        <input id="atDateTime" type="datetime-local" className="form-control form-control-sm" value={actionDateTime} onChange={(e) => setActionDateTime(e.target.value)} disabled={isSubmitting} />
       </div>
       
       <div className="mb-2">
-        <label className="form-label small fw-bold">Description *</label>
-        <textarea className="form-control form-control-sm" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} required disabled={isSubmitting} placeholder="What did you do?" />
+        <label htmlFor="atDesc" className="form-label small fw-bold">Description *</label>
+        <textarea id="atDesc" className="form-control form-control-sm" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} required disabled={isSubmitting} placeholder="What did you do?" />
       </div>
       
       <div className="mb-2">
-        <label className="form-label small fw-bold">Result *</label>
-        <textarea className="form-control form-control-sm" rows={2} value={result} onChange={(e) => setResult(e.target.value)} required disabled={isSubmitting} placeholder="What was the outcome?" />
+        <label htmlFor="atResult" className="form-label small fw-bold">Result *</label>
+        <textarea id="atResult" className="form-control form-control-sm" rows={2} value={result} onChange={(e) => setResult(e.target.value)} required disabled={isSubmitting} placeholder="What was the outcome?" />
       </div>
       
       <div className="mb-2 form-check">
@@ -94,14 +94,14 @@ export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting 
       
       {followUpRequired && (
         <div className="mb-2">
-          <label className="form-label small fw-bold text-danger">Follow-up Note *</label>
-          <textarea className="form-control form-control-sm border-danger" rows={2} value={followUpNote} onChange={(e) => setFollowUpNote(e.target.value)} required disabled={isSubmitting} placeholder="Why is follow-up needed?" />
+          <label htmlFor="atFollowUpNote" className="form-label small fw-bold text-danger">Follow-up Note *</label>
+          <textarea id="atFollowUpNote" className="form-control form-control-sm border-danger" rows={2} value={followUpNote} onChange={(e) => setFollowUpNote(e.target.value)} required disabled={isSubmitting} placeholder="Why is follow-up needed?" />
         </div>
       )}
       
       <div className="mb-3">
-        <label className="form-label small fw-bold">Attachment Notes</label>
-        <input type="text" className="form-control form-control-sm" value={attachmentNotes} onChange={(e) => setAttachmentNotes(e.target.value)} disabled={isSubmitting} placeholder="Optional notes about attachments" />
+        <label htmlFor="atAttachmentNotes" className="form-label small fw-bold">Attachment Notes</label>
+        <input id="atAttachmentNotes" type="text" className="form-control form-control-sm" value={attachmentNotes} onChange={(e) => setAttachmentNotes(e.target.value)} disabled={isSubmitting} placeholder="Optional notes about attachments" />
       </div>
       
       <div className="d-flex justify-content-end gap-2">

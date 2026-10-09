@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { StatusBadge, PriorityBadge } from "./common/Badges";
+import { ActionsTakenList } from "./tickets/ActionsTakenList";
 
 interface UserInfo {
   id?: number;
@@ -117,6 +119,7 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
   const [editItPriority, setEditItPriority] = useState("");
   const [editAssignedTo, setEditAssignedTo] = useState<string>("");
   const [savingMeta, setSavingMeta] = useState(false);
+  const [staleToast, setStaleToast] = useState<string | null>(null);
 
   useEffect(() => {
     loadTicket();
@@ -171,10 +174,13 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
 
   const handleSaveMeta = async () => {
     setSavingMeta(true);
+    setStaleToast(null);
     try {
       const payload: any = {
         itPriority: editItPriority,
-        assignedStaffId: editAssignedTo === "unassigned" ? null : Number(editAssignedTo)
+        assignedStaffId: editAssignedTo === "unassigned" ? null : Number(editAssignedTo),
+        // BR-10: always send expectedStatus so server can detect stale updates
+        expectedStatus: ticket?.currentStatus
       };
       if (editStatus !== ticket?.currentStatus) {
         payload.status = editStatus;
@@ -188,6 +194,14 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
         },
         body: JSON.stringify(payload)
       });
+
+      if (res.status === 409) {
+        // BR-10: Stale update — show alert, refetch fresh status, but DO NOT clear user input
+        setStaleToast("ตั๋วนี้ถูกเปลี่ยนสถานะโดยผู้ใช้อื่น — กำลังโหลดสถานะล่าสุด...");
+        loadTicket(); // refetch to show fresh status; editStatus/notes/comments not cleared
+        return;
+      }
+
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || "Failed to update");
@@ -419,11 +433,8 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
               <div className="modal-body">
                 <p>Are you sure you want to remove this attachment?</p>
                 <div className="mb-3">
-                  <label className="form-label">Removal Reason (Required)</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={removalReason}
+                  <label htmlFor="tdRemovalReason" className="form-label">Removal Reason (Required)</label>
+                  <input id="tdRemovalReason" type="text" className="form-control" value={removalReason}
                     onChange={(e) => setRemovalReason(e.target.value)}
                     data-testid="removal-reason-input"
                   />
@@ -487,17 +498,12 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
             </div>
             
             {!isStaff ? (
-              <div className="d-flex gap-2">
-                <span className={`badge fs-6 bg-${statusBadge(ticket.currentStatus)}`}>
-                  {ticket.currentStatus}
-                </span>
-                <span className={`badge fs-6 bg-${priorityBadge(ticket.requestedPriority)}`}>
-                  Req: {ticket.requestedPriority}
-                </span>
-                <span className={`badge fs-6 bg-${priorityBadge(ticket.itPriority || ticket.requestedPriority)}`}>
-                  IT: {ticket.itPriority || "Unset"}
-                </span>
+              <div className="d-flex gap-2 align-items-center">
+                <StatusBadge status={ticket.currentStatus} />
+                <PriorityBadge priority={ticket.requestedPriority} />
+                <PriorityBadge priority={ticket.itPriority || ticket.requestedPriority} />
                 <span className="badge bg-info text-dark fs-6">
+                  <i className="bi bi-person-badge me-1" aria-hidden="true"></i>
                   {ticket.assignedStaff ? ticket.assignedStaff.fullName : "Unassigned"}
                 </span>
               </div>
@@ -552,6 +558,21 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
                 >
                   {savingMeta ? "Saving..." : "Save Changes"}
                 </button>
+                {staleToast && (
+                  <div
+                    className="alert alert-warning alert-dismissible mt-2 py-2 px-3 small"
+                    role="alert"
+                    data-testid="stale-toast"
+                  >
+                    ⚠️ {staleToast}
+                    <button
+                      type="button"
+                      className="btn-close"
+                      aria-label="Close"
+                      onClick={() => setStaleToast(null)}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -597,8 +618,10 @@ export function TicketDetail({ ticketId, currentUser, onBack }: TicketDetailProp
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="row g-4 mt-2">
         <div className="col-md-7">
+          <ActionsTakenList ticketId={ticket.id} userRole={currentUser.role} />
+          
           <div className="card shadow-sm h-100 mb-4">
             <div className="card-header bg-white">
               <strong>Public Comments</strong>

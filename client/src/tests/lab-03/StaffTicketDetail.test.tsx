@@ -99,6 +99,8 @@ describe('StaffTicketDetail Component', () => {
         body: JSON.stringify({
           itPriority: 'LOW',
           assignedStaffId: null,
+          // BR-10: expectedStatus always sent to enable server-side optimistic locking
+          expectedStatus: 'NEW',
           status: 'OPEN'
         })
       }));

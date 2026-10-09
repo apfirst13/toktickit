@@ -61,6 +61,7 @@ model User {
   assignedTickets    Ticket[]  @relation("AssignedTickets")
   publicComments     PublicComment[]
   internalNotes      InternalNote[]
+  actionsTaken       ActionTaken[]
 }
 
 model Ticket {
@@ -92,6 +93,7 @@ model Ticket {
   attachments       Attachment[]
   publicComments    PublicComment[]
   internalNotes     InternalNote[]
+  actionsTaken      ActionTaken[]
 }
 
 model Attachment {
@@ -131,4 +133,23 @@ model InternalNote {
 
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model ActionTaken {
+  id               Int      @id @default(autoincrement())
+  actionDateTime   DateTime
+  description      String
+  result           String
+  followUpRequired Boolean  @default(false)
+  followUpNote     String?
+  attachmentNotes  String?
+  version          Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  ticketId         Int
+  ticket           Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  performedById    Int
+  performedBy      User     @relation(fields: [performedById], references: [id], onDelete: Restrict)
 }

@@ -5,15 +5,19 @@ import authRoutes from './routes/auth.routes.js';
 import ticketsRoutes from './routes/tickets.routes.js';
 import staffRoutes from './routes/staff.routes.js';
 import usersRoutes from './routes/users.routes.js';
+import actionsTakenRoutes from './routes/actions-taken.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+app.use('/api/tickets/:id/actions', actionsTakenRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/admin/users', usersRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/', (req, res) => {
   res.send('TokTickIT API is running!');

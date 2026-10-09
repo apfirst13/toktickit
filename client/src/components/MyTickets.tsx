@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { StatusBadge } from "./common/Badges";
 interface Ticket {
   id: number;
   ticketNumber: string;
@@ -16,9 +16,10 @@ interface Category {
 interface MyTicketsProps {
   requesterId: number;
   onViewTicket: (id: number) => void;
+  initialStatus?: string;
 }
 
-export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
+export function MyTickets({ requesterId, onViewTicket, initialStatus = "" }: MyTicketsProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +28,14 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
   // Filters & Pagination
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [status, setStatus] = useState(initialStatus);
   const [sortBy, setSortBy] = useState("newest");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    setStatus(initialStatus);
+  }, [initialStatus]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -45,6 +51,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
       page: String(page),
       ...(search ? { search } : {}),
       ...(categoryId ? { categoryId } : {}),
+      ...(status ? { status } : {}),
       ...(sortBy ? { sortBy } : {})
     });
     
@@ -64,12 +71,12 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
         setError(err.message);
         setLoading(false);
       });
-  }, [requesterId, search, categoryId, sortBy, page]);
+  }, [requesterId, search, categoryId, status, sortBy, page]);
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, categoryId, sortBy]);
+  }, [search, categoryId, status, sortBy]);
 
   const zen = "#006B3C";
 
@@ -82,7 +89,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
           </h4>
           
           <div className="row g-2 mb-4">
-            <div className="col-md-5">
+            <div className="col-md-3">
               <input 
                 type="text" 
                 className="form-control" 
@@ -92,7 +99,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
                 data-testid="search-input"
               />
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3">
               <select 
                 className="form-select" 
                 value={categoryId} 
@@ -103,6 +110,21 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
                 {categories.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
+              </select>
+            </div>
+            <div className="col-md-3">
+              <select 
+                className="form-select" 
+                value={status} 
+                onChange={(e) => setStatus(e.target.value)}
+                data-testid="status-filter"
+              >
+                <option value="">All Statuses</option>
+                <option value="NEW,OPEN,REOPENED">My Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="WAITING_FOR_REQUESTER">Waiting for You</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="CLOSED">Closed</option>
               </select>
             </div>
             <div className="col-md-3">
@@ -157,9 +179,7 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
                         <td className="fw-bold">{t.ticketNumber}</td>
                         <td>{t.summary}</td>
                         <td>
-                          <span className={`badge bg-${t.currentStatus === 'New' ? 'info' : 'secondary'}`}>
-                            {t.currentStatus}
-                          </span>
+                          <StatusBadge status={t.currentStatus} />
                         </td>
                         <td>{new Date(t.createdAt).toLocaleDateString()}</td>
                         <td>

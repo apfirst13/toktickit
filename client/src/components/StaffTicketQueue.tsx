@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { StatusBadge, PriorityBadge } from "./common/Badges";
 /* ─── Types ─── */
 interface QueueTicket {
   id: number;
@@ -30,6 +30,12 @@ interface Category {
 interface StaffTicketQueueProps {
   userId: number;
   onViewTicket: (id: number) => void;
+  initialFilters?: {
+    status?: string;
+    owner?: string;
+    reqPriority?: string;
+    isUrgent?: boolean;
+  };
 }
 
 /* ─── Constants ─── */
@@ -67,7 +73,7 @@ function formatStatus(s: string): string {
 }
 
 /* ─── Component ─── */
-export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps) {
+export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: StaffTicketQueueProps) {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({ total: 0, page: 1, pageSize: 10, totalPages: 1 });
   const [categories, setCategories] = useState<Category[]>([]);
@@ -76,16 +82,26 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
 
   // Filters
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialFilters?.status || "");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [reqPriorityFilter, setReqPriorityFilter] = useState("");
+  const [reqPriorityFilter, setReqPriorityFilter] = useState(initialFilters?.reqPriority || "");
   const [itPriorityFilter, setItPriorityFilter] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState(""); // "", "unassigned", "me", or staff id
+  const [ownerFilter, setOwnerFilter] = useState(initialFilters?.owner || ""); // "", "unassigned", "me", or staff id
+  const [isUrgentFilter, setIsUrgentFilter] = useState(initialFilters?.isUrgent || false);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
 
-  const hasActiveFilters = search || statusFilter || categoryFilter || reqPriorityFilter || itPriorityFilter || ownerFilter;
+  useEffect(() => {
+    if (initialFilters) {
+      if (initialFilters.status !== undefined) setStatusFilter(initialFilters.status);
+      if (initialFilters.owner !== undefined) setOwnerFilter(initialFilters.owner);
+      if (initialFilters.reqPriority !== undefined) setReqPriorityFilter(initialFilters.reqPriority);
+      if (initialFilters.isUrgent !== undefined) setIsUrgentFilter(initialFilters.isUrgent);
+    }
+  }, [initialFilters]);
+
+  const hasActiveFilters = search || statusFilter || categoryFilter || reqPriorityFilter || itPriorityFilter || ownerFilter || isUrgentFilter;
 
   // Fetch categories for filter dropdown
   useEffect(() => {
@@ -136,12 +152,12 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
         setError(err.message);
         setLoading(false);
       });
-  }, [page, search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, sortBy, sortOrder, userId]);
+  }, [page, search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, isUrgentFilter, sortBy, sortOrder, userId]);
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, sortBy, sortOrder]);
+  }, [search, statusFilter, categoryFilter, reqPriorityFilter, itPriorityFilter, ownerFilter, isUrgentFilter, sortBy, sortOrder]);
 
   function clearFilters() {
     setSearch("");
@@ -175,6 +191,12 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
           </h4>
 
           {/* ── Toolbar / Filters ── */}
+          {isUrgentFilter && (
+            <div className="alert alert-danger py-2 d-flex justify-content-between align-items-center" data-testid="urgent-filter-alert">
+              <span><strong>Urgent Tickets Mode:</strong> Showing tickets with URGENT or HIGH priority (Requester or IT).</span>
+              <button className="btn btn-sm btn-outline-danger" onClick={() => setIsUrgentFilter(false)}>Clear Urgent Filter</button>
+            </div>
+          )}
           <div className="row g-2 mb-3" data-testid="queue-filters">
             {/* Search */}
             <div className="col-12 col-md-4">
@@ -192,6 +214,7 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
             <div className="col-6 col-md-2">
               <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} data-testid="queue-status-filter">
                 <option value="">All Status</option>
+                <option value="OPEN,REOPENED">Open & Reopened</option>
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>{formatStatus(s)}</option>
                 ))}
@@ -334,19 +357,13 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
                           <td>{t.summary}</td>
                           <td>{t.category?.name || "—"}</td>
                           <td>
-                            <span className={`badge ${PRIORITY_BADGE[t.requestedPriority] || "bg-secondary"}`}>
-                              {t.requestedPriority}
-                            </span>
+                            <PriorityBadge priority={t.requestedPriority} />
                           </td>
                           <td>
-                            <span className={`badge ${PRIORITY_BADGE[t.itPriority || ""] || "bg-secondary"}`}>
-                              {t.itPriority || "—"}
-                            </span>
+                            {t.itPriority ? <PriorityBadge priority={t.itPriority} /> : "—"}
                           </td>
                           <td>
-                            <span className={`badge ${STATUS_BADGE[t.currentStatus] || "bg-secondary"}`}>
-                              {formatStatus(t.currentStatus)}
-                            </span>
+                            <StatusBadge status={t.currentStatus} />
                           </td>
                           <td>{t.assignedStaff?.fullName || <span className="text-muted fst-italic">Unassigned</span>}</td>
                           <td>
@@ -383,18 +400,12 @@ export function StaffTicketQueue({ userId, onViewTicket }: StaffTicketQueueProps
                           <span className="fw-bold" style={{ color: ZEN }}>{t.ticketNumber}</span>
                           <span className="text-muted small ms-2">{new Date(t.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <span className={`badge ${STATUS_BADGE[t.currentStatus] || "bg-secondary"}`}>
-                          {formatStatus(t.currentStatus)}
-                        </span>
+                        <StatusBadge status={t.currentStatus} />
                       </div>
                       <p className="mb-2 fw-semibold">{t.summary}</p>
                       <div className="d-flex flex-wrap gap-2 mb-2">
-                        <span className={`badge ${PRIORITY_BADGE[t.requestedPriority] || "bg-secondary"}`}>
-                          Req: {t.requestedPriority}
-                        </span>
-                        <span className={`badge ${PRIORITY_BADGE[t.itPriority || ""] || "bg-secondary"}`}>
-                          IT: {t.itPriority || "—"}
-                        </span>
+                        <PriorityBadge priority={t.requestedPriority} />
+                        {t.itPriority && <PriorityBadge priority={t.itPriority} />}
                         {t.category && <span className="badge bg-light text-dark border">{t.category.name}</span>}
                       </div>
                       <div className="d-flex justify-content-between align-items-center">

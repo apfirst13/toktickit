@@ -1,3 +1,4 @@
+import { buildTicketWhereClause } from '../utils/ticket-query.util.js';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
 import { prisma } from '../prisma.js';
@@ -13,18 +14,25 @@ export const getTickets = async (req: AuthenticatedRequest, res: Response): Prom
       return res.status(401).json({ error: 'Unauthorized: No session found.' });
     }
     const requesterId = req.user.id;
-    const { page = "1", limit = "10", search, categoryId, sortBy } = req.query;
+    const { page = "1", limit = "10", search, categoryId, sortBy, status } = req.query;
 
     const pageNum = Math.max(1, parseInt(page as string, 10));
     const limitNum = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNum - 1) * limitNum;
     
-    const where: any = { requesterUserId: requesterId };
-    if (search && typeof search === 'string' && search.trim() !== '') {
-      where.summary = { contains: search, mode: 'insensitive' };
-    }
-    if (categoryId && !isNaN(Number(categoryId))) {
-      where.categoryId = Number(categoryId);
+    let where: any;
+    try {
+      where = buildTicketWhereClause({
+        requesterUserId: requesterId,
+        search: search as string,
+        categoryId: categoryId ? Number(categoryId) : undefined,
+        status: status as string
+      });
+    } catch (e: any) {
+      if (e.message === 'INVALID_STATUS_FILTER') {
+        return res.status(400).json({ error: 'Invalid status filter' });
+      }
+      throw e;
     }
     
     let orderBy: any = { createdAt: "desc" };

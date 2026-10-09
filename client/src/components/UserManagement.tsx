@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -46,6 +46,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
     initialPassword: ""
   });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -113,6 +114,8 @@ export function UserManagement({ currentUser }: UserManagementProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     setFormError(null);
 
@@ -172,6 +175,7 @@ export function UserManagement({ currentUser }: UserManagementProps) {
     } catch (err: any) {
       setFormError(err.message);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
@@ -331,8 +335,9 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                   {(modalMode === "CREATE" || modalMode === "EDIT") && (
                     <>
                       <div className="mb-3">
-                        <label className="form-label">Email address</label>
+                        <label htmlFor="umEmail" className="form-label">Email address</label>
                         <input
+                          id="umEmail"
                           type="email"
                           className="form-control"
                           required
@@ -342,8 +347,9 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Full Name</label>
+                        <label htmlFor="umFullName" className="form-label">Full Name</label>
                         <input
+                          id="umFullName"
                           type="text"
                           className="form-control"
                           required
@@ -353,8 +359,9 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label">Role</label>
+                        <label htmlFor="umRole" className="form-label">Role</label>
                         <select
+                          id="umRole"
                           className="form-select"
                           value={formData.role}
                           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -386,9 +393,10 @@ export function UserManagement({ currentUser }: UserManagementProps) {
 
                   {(modalMode === "CREATE" || modalMode === "RESET") && (
                     <div className="mb-3">
-                      <label className="form-label">Temporary Password</label>
+                      <label htmlFor="umTempPassword" className="form-label">Temporary Password</label>
                       <div className="input-group">
                         <input
+                          id="umTempPassword"
                           type="text"
                           className="form-control"
                           required

@@ -103,6 +103,18 @@ export function buildTicketWhereClause(filters: TicketFilters): any {
     } else {
       where.OR = urgentOr;
     }
+
+    if (!filters.status) {
+      const terminalStatuses = ['RESOLVED', 'CLOSED', 'CANCELLED'];
+      if (where.currentStatus?.notIn) {
+        where.currentStatus.notIn = Array.from(new Set([...where.currentStatus.notIn, ...terminalStatuses]));
+      } else {
+        where.currentStatus = {
+          ...(where.currentStatus || {}),
+          notIn: terminalStatuses
+        };
+      }
+    }
   } else {
     if (filters.requestedPriority) {
       const rp = Array.isArray(filters.requestedPriority) ? filters.requestedPriority : filters.requestedPriority.split(',');

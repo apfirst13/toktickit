@@ -42,6 +42,7 @@ describe('buildTicketWhereClause', () => {
     
     expect(where.requestedPriority).toBeUndefined();
     expect(where.OR).toBeDefined(); // urgent OR
+    expect(where.currentStatus).toEqual({ notIn: ['RESOLVED', 'CLOSED', 'CANCELLED'] });
   });
   
   it('should handle excludeStatus', () => {

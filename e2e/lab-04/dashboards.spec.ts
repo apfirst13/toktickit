@@ -13,8 +13,8 @@ test.describe('Dashboards', () => {
     await page.click('button[data-testid="nav-dashboard"]');
 
     // Check for dashboard elements
-    await expect(page.locator('text=My Tickets Dashboard')).toBeVisible();
-    await expect(page.locator('text=Open Tickets')).toBeVisible();
+    await expect(page.locator('[data-testid="requester-dashboard"]')).toBeVisible();
+    await expect(page.locator('text=My Open')).toBeVisible();
     await expect(page.locator('text=Recently Updated Tickets')).toBeVisible();
   });
 

@@ -38,25 +38,26 @@
 > toktickit-client@1.0.0 test
 > vitest run
 
+
  RUN  v2.1.9 D:/University/Y3/sem1/cpe334 se/lab2/toctickit/client
 
- ✓ src/tests/lab-03/UserManagement.test.tsx (3 tests) 143ms
- ✓ src/tests/lab-04/StaffDashboard.test.tsx (4 tests) 162ms
- ✓ src/tests/lab-04/RequesterDashboard.test.tsx (3 tests) 187ms
+ ✓ src/tests/lab-03/UserManagement.test.tsx (3 tests) 144ms
+ ✓ src/tests/lab-04/StaffDashboard.test.tsx (7 tests) 195ms
+ ✓ src/tests/lab-04/RequesterDashboard.test.tsx (4 tests) 220ms
  ✓ tests/lab-01/App.test.tsx (3 tests) 195ms
- ✓ src/tests/lab-02/CreateTicket.test.tsx (4 tests) 267ms
- ✓ src/components/Login.test.tsx (2 tests) 282ms
- ✓ src/tests/lab-04/ActionsTaken.test.tsx (3 tests) 279ms
- ✓ src/tests/lab-03/StaffTicketDetail.test.tsx (3 tests) 292ms
- ✓ src/tests/lab-04/TicketWorkflow.test.tsx (1 test) 354ms
- ✓ src/tests/lab-02/TicketDetail.test.tsx (9 tests) 403ms
- ✓ src/tests/lab-03/StaffTicketQueue.test.tsx (10 tests) 492ms
- ✓ src/tests/lab-03/ChangePassword.test.tsx (7 tests) 665ms
+ ✓ src/tests/lab-02/CreateTicket.test.tsx (4 tests) 261ms
+ ✓ src/components/Login.test.tsx (2 tests) 280ms
+ ✓ src/tests/lab-03/StaffTicketDetail.test.tsx (3 tests) 290ms
+ ✓ src/tests/lab-02/TicketDetail.test.tsx (9 tests) 392ms
+ ✓ src/tests/lab-04/ActionsTaken.test.tsx (6 tests) 444ms
+ ✓ src/tests/lab-03/StaffTicketQueue.test.tsx (10 tests) 507ms
+ ✓ src/tests/lab-04/TicketWorkflow.test.tsx (9 tests) 584ms
+ ✓ src/tests/lab-03/ChangePassword.test.tsx (7 tests) 659ms
 
  Test Files  12 passed (12)
-      Tests  52 passed (52)
-   Start at  21:19:14
-   Duration  3.64s (transform 1.33s, setup 2.84s, collect 5.29s, tests 3.72s, environment 22.78s, prepare 1.71s)
+      Tests  67 passed (67)
+   Start at  15:25:19
+   Duration  23.32s
 ```
 
 ## E2E Tests (`npx playwright test e2e/lab-04`)

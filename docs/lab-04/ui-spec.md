@@ -36,8 +36,6 @@ Added as a new tab or distinct visual section within the existing Ticket Detail 
 
 ## 5. Visual Inspection Screenshots
 
-> **Note for Student:** Please replace the placeholder paths below with actual screenshots of your application running in the browser. Capture these at Desktop, Tablet, and Mobile breakpoints.
-
 ### 5.1 IT Staff Dashboard & Ticket Queue
 *Showing the Staff Dashboard metrics and the filtered ticket list.*
 

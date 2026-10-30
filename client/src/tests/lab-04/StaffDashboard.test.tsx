@@ -108,4 +108,45 @@ describe('Lab 4 - Staff Dashboard', () => {
     fireEvent.click(screen.getByTestId('recent-ticket-10'));
     expect(mockView).toHaveBeenCalledWith(10);
   });
+
+  it('renders empty state when recentlyUpdated is empty', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        metrics: { new: 0, open: 0, inProgress: 0, waiting: 0, myAssigned: 0, urgent: 0 },
+        recentlyUpdated: []
+      })
+    });
+
+    render(<StaffDashboard onNavigateToQueue={vi.fn()} onViewTicket={vi.fn()} userRole="IT_STAFF" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('empty-recent-tickets')).toBeInTheDocument();
+    });
+    expect(screen.getByText('No active tickets recently updated.')).toBeInTheDocument();
+  });
+
+  it('renders safe error alert when API returns 403 Forbidden', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden'
+    });
+
+    render(<StaffDashboard onNavigateToQueue={vi.fn()} onViewTicket={vi.fn()} userRole="IT_STAFF" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error loading dashboard: Failed to fetch dashboard data/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders safe error alert when fetch fails due to network error', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network connection error'));
+
+    render(<StaffDashboard onNavigateToQueue={vi.fn()} onViewTicket={vi.fn()} userRole="IT_STAFF" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error loading dashboard: Network connection error/i)).toBeInTheDocument();
+    });
+  });
 });

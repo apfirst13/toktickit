@@ -45,7 +45,8 @@ export function StaffDashboard({ onNavigateToQueue, onViewTicket, userRole }: St
       headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` }
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch dashboard data");
+        if (res.status === 403) throw new Error("Failed to fetch dashboard data (403 Forbidden)");
+        if (!res.ok) throw new Error("Failed to fetch dashboard data (500 Server Error)");
         return res.json();
       })
       .then((d) => {

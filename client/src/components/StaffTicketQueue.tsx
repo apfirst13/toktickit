@@ -133,6 +133,9 @@ export function StaffTicketQueue({ userId, onViewTicket, initialFilters }: Staff
     } else if (ownerFilter === "unassigned") {
       params.set("assignedTo", "unassigned");
     }
+    if (isUrgentFilter) {
+      params.set("isUrgent", "true");
+    }
 
     const token = localStorage.getItem("token") || "";
     fetch(`/api/staff/queue?${params.toString()}`, {

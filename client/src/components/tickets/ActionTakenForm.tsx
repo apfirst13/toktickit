@@ -21,8 +21,12 @@ const ZEN = "#006B3C";
 
 const getLocalDatetimeLocal = (date?: string | Date) => {
   const d = date ? new Date(date) : new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting }: ActionTakenFormProps) => {
@@ -65,9 +69,9 @@ export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="border p-3 rounded bg-white shadow-sm mt-3" data-testid="action-taken-form">
+    <form onSubmit={handleSubmit} noValidate className="border p-3 rounded bg-white shadow-sm mt-3" data-testid="action-taken-form">
       <h6 className="mb-3">{initialData ? 'Edit Action Taken' : 'Add New Action Taken'}</h6>
-      {error && <div className="alert alert-danger py-2 small">{error}</div>}
+      {error && <div className="alert alert-danger py-2 small" data-testid="action-taken-error">{error}</div>}
       
       <div className="mb-2">
         <label htmlFor="atDateTime" className="form-label small fw-bold">Date & Time</label>
@@ -76,12 +80,12 @@ export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting 
       
       <div className="mb-2">
         <label htmlFor="atDesc" className="form-label small fw-bold">Description *</label>
-        <textarea id="atDesc" className="form-control form-control-sm" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} required disabled={isSubmitting} placeholder="What did you do?" />
+        <textarea id="atDesc" className="form-control form-control-sm" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} required aria-required="true" disabled={isSubmitting} placeholder="What did you do?" />
       </div>
       
       <div className="mb-2">
         <label htmlFor="atResult" className="form-label small fw-bold">Result *</label>
-        <textarea id="atResult" className="form-control form-control-sm" rows={2} value={result} onChange={(e) => setResult(e.target.value)} required disabled={isSubmitting} placeholder="What was the outcome?" />
+        <textarea id="atResult" className="form-control form-control-sm" rows={2} value={result} onChange={(e) => setResult(e.target.value)} required aria-required="true" disabled={isSubmitting} placeholder="What was the outcome?" />
       </div>
       
       <div className="mb-2 form-check">
@@ -95,7 +99,7 @@ export const ActionTakenForm = ({ initialData, onSubmit, onCancel, isSubmitting 
       {followUpRequired && (
         <div className="mb-2">
           <label htmlFor="atFollowUpNote" className="form-label small fw-bold text-danger">Follow-up Note *</label>
-          <textarea id="atFollowUpNote" className="form-control form-control-sm border-danger" rows={2} value={followUpNote} onChange={(e) => setFollowUpNote(e.target.value)} required disabled={isSubmitting} placeholder="Why is follow-up needed?" />
+          <textarea id="atFollowUpNote" className="form-control form-control-sm border-danger" rows={2} value={followUpNote} onChange={(e) => setFollowUpNote(e.target.value)} aria-required="true" disabled={isSubmitting} placeholder="Why is follow-up needed?" />
         </div>
       )}
       

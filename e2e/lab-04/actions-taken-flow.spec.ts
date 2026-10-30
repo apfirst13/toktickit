@@ -48,4 +48,50 @@ test.describe('ActionsTakenList rapid-click guard (Issue 7 / Lab 4)', () => {
     
     expect(count).toBe(1);
   });
+
+  test('followUpRequired=true with empty note triggers inline validation alert', async ({ page }) => {
+    // Login as IT Staff
+    await page.goto('http://localhost:5173');
+    await page.fill('input[type="email"]', 'staff1@toktickit.com');
+    await page.fill('input[type="password"]', 'Password123!');
+    await page.click('button[type="submit"]');
+
+    await page.waitForSelector('button[data-testid="nav-staff-queue"]');
+    await page.click('button[data-testid="nav-staff-queue"]');
+
+    await page.waitForSelector('button:has-text("View")');
+    await page.locator('button:has-text("View")').first().click();
+
+    await page.waitForSelector('button:has-text("+ Add Action")');
+    await page.click('button:has-text("+ Add Action")');
+
+    await page.waitForSelector('[data-testid="action-taken-form"]');
+    await page.fill('textarea[placeholder="What did you do?"]', 'Testing validation');
+    await page.fill('textarea[placeholder="What was the outcome?"]', 'Testing validation outcome');
+
+    // Check Follow-up Required but leave note empty
+    await page.check('#followUpCheck');
+    await page.click('button[type="submit"]');
+
+    // Assert custom inline error alert is displayed
+    await expect(page.locator('text=Follow-up note is required when follow-up is required')).toBeVisible();
+  });
+
+  test('REQUESTER entering own ticket does not see Add/Edit Action buttons', async ({ page }) => {
+    // Login as Requester
+    await page.goto('http://localhost:5173');
+    await page.fill('input[type="email"]', 'req1@toktickit.com');
+    await page.fill('input[type="password"]', 'Password123!');
+    await page.click('button[type="submit"]');
+
+    // Wait for Dashboard / My Tickets
+    await page.waitForSelector('button:has-text("My Tickets")');
+    await page.click('button:has-text("My Tickets")');
+
+    await page.waitForSelector('button:has-text("View")');
+    await page.locator('button:has-text("View")').first().click();
+
+    // On TicketDetail, Requester should NOT see + Add Action
+    await expect(page.locator('button:has-text("+ Add Action")')).not.toBeVisible();
+  });
 });

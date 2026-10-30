@@ -76,4 +76,14 @@ describe('Lab 4 - Requester Dashboard', () => {
       expect(screen.getByTestId('empty-recent-tickets')).toBeInTheDocument();
     });
   });
+
+  it('renders safe error alert when fetch fails due to network error', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network connection failed'));
+
+    render(<RequesterDashboard onCreateTicket={vi.fn()} onNavigateToList={vi.fn()} onViewTicket={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error loading dashboard: Network connection failed/i)).toBeInTheDocument();
+    });
+  });
 });
